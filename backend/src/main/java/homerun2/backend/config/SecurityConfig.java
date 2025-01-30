@@ -16,7 +16,7 @@ public class SecurityConfig {
                 .csrf().disable()
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        .anyRequest().authenticated())
+                        .anyRequest().authenticated()) // /api/auth/** 이외에는 모든 경로는 인증이 필요함
                 .oauth2Login()
                 .defaultSuccessUrl("/")
                 .failureUrl("/login")
