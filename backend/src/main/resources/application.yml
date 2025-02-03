@@ -21,3 +21,29 @@ spring:
             token-uri: https://kauth.kakao.com/oauth/token
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
+
+bus:
+  api-key: "Y1krIHzIaGjNExwpuP1xPwK34bFoC0iNOZhXjw45sb6mlhyqVVXTsuKTK+M6b1q9FEFwljRgECK9lIsGiPO+Yw=="
+  station:
+    fromMJUtoGH: 228002959
+    fromGHtoMJU: 228000696
+  numbers: 5005,820,5600,5003A,5003B
+  routeMap: '{"5005": "228000175", "820": "228000012", "5600": "228000184", "5003A": "228000431", "5003B": "228000182"}'
+#  routeMap:
+#    "5005": "228000175"
+#    "820": "228000012"
+#    "5600": "228000184"
+#    "5003A": "228000431"
+#    "5003B": "228000182"
+
+bounds:
+  mju:
+    - 37.224238
+    - 127.187856
+    - 37.22938
+    - 127.19028
+  gh:
+    - 37.274678
+    - 127.115739
+    - 37.27749
+    - 127.12048

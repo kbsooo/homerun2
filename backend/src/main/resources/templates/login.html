@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f5f6f7;
+            font-family: Arial, sans-serif;
+        }
+        .login-container {
+            text-align: center;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .kakao-login-btn {
+            background-color: #FEE500;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #000000;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .kakao-login-btn:hover {
+            background-color: #E6CF00;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h2>로그인</h2>
+        <a th:href="@{/oauth2/authorization/kakao}" class="kakao-login-btn">
+            카카오 계정으로 로그인
+        </a>
+    </div>
+</body>
+</html> 
