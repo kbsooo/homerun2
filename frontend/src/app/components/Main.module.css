@@ -1,3 +1,108 @@
+.container {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+}
+
 .timer {
-  color: green;
+  font-size: 3rem;
+  color: #333;
+  margin-bottom: 2rem;
+  font-weight: bold;
+}
+
+.busContainer {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 1200px;
+}
+
+.busCard {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease;
+}
+
+.busCard:hover {
+  transform: translateY(-5px);
+}
+
+.busNumber {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2563eb;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.busInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.arrivalTime {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.arrivalTime span {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.arrivalTime strong {
+  font-size: 1.5rem;
+  color: #111827;
+}
+
+.seats {
+  background-color: #f3f4f6;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.error {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  color: #991b1b;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+.directionButton {
+  background-color: #2563eb;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 9999px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  margin-bottom: 2rem;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+}
+
+.directionButton:hover {
+  background-color: #1d4ed8;
+}
+
+.directionButton:active {
+  background-color: #1e40af;
 }
