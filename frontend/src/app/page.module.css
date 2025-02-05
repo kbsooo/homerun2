@@ -1,0 +1,43 @@
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  transition: all 0.3s ease;
+}
+
+/* Yellow Theme */
+.yellowTheme {
+  --theme-color: #fabe00;
+  --theme-hover: #e5ad00;
+  --theme-active: #d19e00;
+}
+
+/* Blue Theme */
+.blueTheme {
+  --theme-color: #071d49;
+  --theme-hover: #0a2a6e;
+  --theme-active: #0d3693;
+}
+
+/* Dark Mode */
+.darkMode {
+  background-color: #121212;
+}
+
+.darkMode.yellowTheme {
+  --theme-color: #fabe00;
+  --theme-hover: #e5ad00;
+  --theme-active: #d19e00;
+}
+
+.darkMode.blueTheme {
+  --theme-color: #005eb8;
+  --theme-hover: #004e99;
+  --theme-active: #003d7a;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+} 

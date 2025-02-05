@@ -1,80 +1,74 @@
 /* components/Footer.module.css */
 .footer {
   width: 100%;
-  padding: 1.5rem 0;
-  background-color: #ffffff;
-  border-top: 1px solid #f1f5f9;
-  position: relative;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 10;
+  padding: 2rem 0;
+  background-color: white;
+  border-top: 1px solid #e5e7eb;
+  margin-top: auto;
+  transition: all 0.3s ease;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
+  padding: 0 2rem;
 }
 
-.links {
+.content {
   display: flex;
-  gap: 1.5rem;
-  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-bottom: 1.5rem;
 }
 
-.link {
+.credits {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: #64748b;
-  text-decoration: none;
+  color: #6b7280;
   font-size: 0.875rem;
-  transition: color 0.2s ease;
+}
+
+:global(.darkMode) .credits {
+  color: #9ca3af;
+}
+
+.link {
+  color: var(--theme-color);
+  text-decoration: none;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
 }
 
 .link:hover {
-  color: #ff6b6b;
+  color: var(--theme-hover);
+  background-color: #f3f4f6;
+}
+
+:global(.darkMode) .link:hover {
+  background-color: #2d2d2d;
 }
 
 .copyright {
-  color: #94a3b8;
-  font-size: 0.875rem;
   text-align: center;
+  color: #9ca3af;
+  font-size: 0.875rem;
 }
 
-.span {
-  color: red;
-  display: flex;
-}
-
-/* 반응형 디자인 */
 @media (max-width: 640px) {
   .footer {
-    padding: 1rem 0;
-    position: sticky;
-    bottom: 0;
-    background-color: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(8px);
+    padding: 1.5rem 0;
   }
 
   .container {
     padding: 0 1rem;
   }
 
-  .links {
+  .content {
+    flex-direction: column;
+    align-items: center;
     gap: 1rem;
-  }
-
-  .link {
-    font-size: 0.8125rem;
-  }
-
-  .copyright {
-    font-size: 0.8125rem;
   }
 }

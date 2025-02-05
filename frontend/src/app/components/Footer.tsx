@@ -8,26 +8,32 @@ export default function Footer() {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
-        <div className={styles.links}>
-          <span className={styles.span}>
-            based on 
-            <Link href="https://github.com/ijodea/homerun" target="_blank"
-            rel="noopener noreferrer"
-              className={styles.link}>
+        <div className={styles.content}>
+          <div className={styles.credits}>
+            <span>Based on</span>
+            <Link
+              href="https://github.com/ijodea/homerun"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+            >
               ijodea/homerun
             </Link>
-            , remade by
-            <Link href="https://github.com/kbsooo"
-            target='_blank'
-            rel="noopener noreferrer"
-            className={styles.link}
-          >
-            KBSOO
-          </Link>
-          </span>
+          </div>
+          <div className={styles.credits}>
+            <span>Remade by</span>
+            <Link
+              href="https://github.com/kbsooo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.link}
+            >
+              KBSOO
+            </Link>
+          </div>
         </div>
         <div className={styles.copyright}>
-        © {new Date().getFullYear()} kbsoo. All rights reserved.
+          © {new Date().getFullYear()} KBSOO. All rights reserved.
         </div>
       </div>
     </footer>

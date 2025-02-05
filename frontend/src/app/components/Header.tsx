@@ -3,27 +3,47 @@ import React from 'react';
 import Link from 'next/link';
 import styles from './Header.module.css';
 
-export default function Footer() {
+interface HeaderProps {
+  isDarkMode: boolean;
+  onToggleDarkMode: (value: boolean) => void;
+}
+
+export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
   return (
-    <header>
+    <header className={styles.header}>
       <nav className={styles.nav}>
-        <ul>
-          <li>
-            <Link href='/'>Home</Link>
-          </li>
-          <li>
-            <Link href='/chat'>Chat</Link>
-          </li>
-          <li>
-            <Link href='/detail/ghtomju'>detail/ghtomju</Link>
-          </li>
-          <li>
-            <Link href='detail/mjutogh'>detail/mjutogh</Link>
-          </li>
-          <li>
-            <Link href='/taxi'>Taxi</Link>
-          </li>
-        </ul>
+        <div className={styles.logo}>
+          <Link href='/' className={styles.logoLink}>
+            HomeRun
+          </Link>
+        </div>
+        <div className={styles.menuContainer}>
+          <ul className={styles.menu}>
+            <li>
+              <Link href='/' className={styles.menuItem}>홈</Link>
+            </li>
+            <li>
+              <Link href='/chat' className={styles.menuItem}>채팅</Link>
+            </li>
+            <li>
+              <Link href='/taxi' className={styles.menuItem}>택시</Link>
+            </li>
+          </ul>
+          <div className={styles.toggleWrapper}>
+            <button 
+              className={`${styles.toggleButton} ${!isDarkMode ? styles.active : ''}`}
+              onClick={() => onToggleDarkMode(false)}
+            >
+              라이트
+            </button>
+            <button 
+              className={`${styles.toggleButton} ${isDarkMode ? styles.active : ''}`}
+              onClick={() => onToggleDarkMode(true)}
+            >
+              다크
+            </button>
+          </div>
+        </div>
       </nav>
     </header>
   );

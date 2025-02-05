@@ -1,22 +1,19 @@
-import type { Metadata } from "next";
-import "./globals.css";
-
+import './globals.css'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: "HOMERUN",
-  description: "homerun2",
-};
+  title: 'HomeRun',
+  description: '명지대학교 학생들을 위한 버스 정보 서비스',
+}
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html>
-      <body>
-        {children}
-      </body>
+    <html lang="ko">
+      <body>{children}</body>
     </html>
-  );
+  )
 }

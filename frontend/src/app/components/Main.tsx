@@ -10,11 +10,19 @@ interface BusInfo {
 
 type Direction = 'fromMJUtoGH' | 'fromGHtoMJU';
 
-export default function Main() {
+interface MainProps {
+  isDarkMode: boolean;
+  direction: Direction;
+  onDirectionChange: (direction: Direction) => void;
+}
+
+export default function Main({ isDarkMode, direction, onDirectionChange }: MainProps) {
   const [busData, setBusData] = useState<BusInfo[]>([]);
-  const [timer, setTimer] = useState("00:00:00");
+  const [currentTime, setCurrentTime] = useState({
+    time: "",
+    period: ""
+  });
   const [error, setError] = useState<string | null>(null);
-  const [direction, setDirection] = useState<Direction>('fromMJUtoGH');
 
   useEffect(() => {
     const fetchBusData = async () => {
@@ -37,7 +45,7 @@ export default function Main() {
     };
 
     fetchBusData();
-    const interval = setInterval(fetchBusData, 60000); // 1분마다 갱신
+    const interval = setInterval(fetchBusData, 60000);
 
     return () => clearInterval(interval);
   }, [direction]);
@@ -45,10 +53,18 @@ export default function Main() {
   useEffect(() => {
     const updateTimer = () => {
       const date = new Date();
-      const hours = String(date.getHours()).padStart(2, "0");
+      let hours = date.getHours();
       const minutes = String(date.getMinutes()).padStart(2, "0");
       const seconds = String(date.getSeconds()).padStart(2, "0");
-      setTimer(`${hours}:${minutes}:${seconds}`);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      
+      hours = hours % 12;
+      hours = hours ? hours : 12;
+      
+      setCurrentTime({
+        time: `${String(hours).padStart(2, "0")}:${minutes}:${seconds}`,
+        period: period
+      });
     };
 
     updateTimer();
@@ -57,20 +73,32 @@ export default function Main() {
     return () => clearInterval(interval);
   }, []);
 
-  const toggleDirection = () => {
-    setDirection(prev => prev === 'fromMJUtoGH' ? 'fromGHtoMJU' : 'fromMJUtoGH');
-  };
-
-  const getDirectionText = () => {
-    return direction === 'fromMJUtoGH' ? '명지대 → 기흥역' : '기흥역 → 명지대';
-  };
-
   return (
-    <main className={styles.container}>
-      <h1 className={styles.timer}>{timer}</h1>
-      <button onClick={toggleDirection} className={styles.directionButton}>
-        {getDirectionText()}
-      </button>
+    <main className={`
+      ${styles.container} 
+      ${direction === 'fromMJUtoGH' ? styles.yellowTheme : styles.blueTheme}
+      ${isDarkMode ? styles.darkMode : ''}
+    `}>
+      <div className={styles.timeDisplay}>
+        <span className={styles.period}>{currentTime.period}</span>
+        <span className={styles.time}>{currentTime.time}</span>
+      </div>
+      
+      <div className={styles.toggleWrapper}>
+        <button 
+          className={`${styles.toggleButton} ${direction === 'fromMJUtoGH' ? styles.active : ''}`} 
+          onClick={() => onDirectionChange('fromMJUtoGH')}
+        >
+          기흥역
+        </button>
+        <button 
+          className={`${styles.toggleButton} ${direction === 'fromGHtoMJU' ? styles.active : ''}`}
+          onClick={() => onDirectionChange('fromGHtoMJU')}
+        >
+          명지대
+        </button>
+      </div>
+
       {error ? (
         <div className={styles.error}>{error}</div>
       ) : (
