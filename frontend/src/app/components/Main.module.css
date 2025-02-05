@@ -255,3 +255,126 @@
     margin-bottom: 2.5rem;
   }
 }
+
+/* 셔틀 정보 스타일 */
+.shuttleContainer {
+  width: 100%;
+  max-width: 1200px;
+  margin-bottom: 2rem;
+}
+
+.shuttleCard {
+  background: white;
+  border-radius: 15px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  transition: all 0.3s ease;
+}
+
+.shuttleCard.disabled {
+  opacity: 0.7;
+  background: #f5f5f5;
+  border: 2px dashed #d1d5db;
+  box-shadow: none;
+}
+
+.darkMode .shuttleCard.disabled {
+  background: #2d2d2d;
+  border-color: #4b5563;
+}
+
+.shuttleCard h2 {
+  color: var(--theme-color);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.shuttleInfo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.nextShuttle {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.nextShuttle span {
+  font-size: 1.25rem;
+  color: var(--theme-color);
+  font-weight: 600;
+}
+
+.nextShuttle strong {
+  font-size: 2rem;
+  color: var(--theme-color);
+}
+
+.otherTimes {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background-color: #f3f4f6;
+  padding: 1rem;
+  border-radius: 8px;
+}
+
+.otherTimes div {
+  color: #4b5563;
+  font-size: 0.875rem;
+}
+
+.shuttleMessage {
+  background-color: #f3f4f6;
+  color: #4b5563;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 600px;
+}
+
+.darkMode .shuttleCard {
+  background-color: #1e1e1e;
+  color: #e5e7eb;
+}
+
+.darkMode .otherTimes {
+  background-color: #2d2d2d;
+}
+
+.darkMode .otherTimes div {
+  color: #9ca3af;
+}
+
+.darkMode .shuttleMessage {
+  background-color: #2d2d2d;
+  color: #9ca3af;
+}
+
+.noShuttle {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  text-align: center;
+}
+
+.noShuttleMessage {
+  font-size: 1.2rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.darkMode .noShuttleMessage {
+  color: #9ca3af;
+}
