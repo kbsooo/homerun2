@@ -1,5 +1,7 @@
-/* components/Footer.module.css */
 .footer {
+  --theme-color: #e6a700;
+  --theme-hover: #cc9500;
+  --theme-active: #b38300;
   width: 100%;
   padding: 2rem 0;
   background-color: white;
@@ -8,6 +10,13 @@
   transition: all 0.3s ease;
 }
 
+:global(.darkMode) .footer {
+  --theme-color: #fabe00;
+  --theme-hover: #e5ad00;
+  --theme-active: #d19e00;
+}
+
+/* components/Footer.module.css */
 .container {
   max-width: 1200px;
   margin: 0 auto;
