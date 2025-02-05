@@ -1,7 +1,4 @@
 .header {
-  --theme-color: #e6a700;
-  --theme-hover: #cc9500;
-  --theme-active: #b38300;
   background-color: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   position: sticky;
@@ -10,10 +7,30 @@
   transition: all 0.3s ease;
 }
 
-:global(.darkMode) .header {
+/* Light Mode */
+:global(.yellowTheme:not(.darkMode)) .header {
+  --theme-color: #e6a700;
+  --theme-hover: #cc9500;
+  --theme-active: #b38300;
+}
+
+:global(.blueTheme:not(.darkMode)) .header {
+  --theme-color: #071d49;
+  --theme-hover: #0a2a6e;
+  --theme-active: #0d3693;
+}
+
+/* Dark Mode */
+:global(.darkMode.yellowTheme) .header {
   --theme-color: #fabe00;
   --theme-hover: #e5ad00;
   --theme-active: #d19e00;
+}
+
+:global(.darkMode.blueTheme) .header {
+  --theme-color: #005eb8;
+  --theme-hover: #004e99;
+  --theme-active: #003d7a;
 }
 
 .nav {

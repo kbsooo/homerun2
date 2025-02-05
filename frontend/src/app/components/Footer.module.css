@@ -1,7 +1,4 @@
 .footer {
-  --theme-color: #e6a700;
-  --theme-hover: #cc9500;
-  --theme-active: #b38300;
   width: 100%;
   padding: 2rem 0;
   background-color: white;
@@ -10,10 +7,30 @@
   transition: all 0.3s ease;
 }
 
-:global(.darkMode) .footer {
+/* Light Mode */
+:global(.yellowTheme:not(.darkMode)) .footer {
+  --theme-color: #e6a700;
+  --theme-hover: #cc9500;
+  --theme-active: #b38300;
+}
+
+:global(.blueTheme:not(.darkMode)) .footer {
+  --theme-color: #071d49;
+  --theme-hover: #0a2a6e;
+  --theme-active: #0d3693;
+}
+
+/* Dark Mode */
+:global(.darkMode.yellowTheme) .footer {
   --theme-color: #fabe00;
   --theme-hover: #e5ad00;
   --theme-active: #d19e00;
+}
+
+:global(.darkMode.blueTheme) .footer {
+  --theme-color: #005eb8;
+  --theme-hover: #004e99;
+  --theme-active: #003d7a;
 }
 
 /* components/Footer.module.css */
