@@ -2,7 +2,7 @@ import './globals.css'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'HomeRun',
+  title: 'HOMERUN',
   description: '명지대학교 학생들을 위한 버스 정보 서비스',
 }
 

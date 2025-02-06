@@ -9,12 +9,18 @@ interface BusInfo {
 }
 
 interface ShuttleInfo {
-  nextShuttle: string;
-  time: number;
-  giheungTime: number;
-  mjuStationTime: number;
-  everlineTime: number;
   message?: string;
+  routes?: {
+    giheung?: {
+      name: string;
+      time: number;
+    };
+    everline?: {
+      name: string;
+      time: number;
+      connection: number;
+    };
+  };
 }
 
 type Direction = 'fromMJUtoGH' | 'fromGHtoMJU';
@@ -134,49 +140,74 @@ export default function Main({ isDarkMode, direction, onDirectionChange }: MainP
       {error ? (
         <div className={styles.error}>{error}</div>
       ) : (
-        <>
-          {/* 셔틀 정보 표시 */}
-          <div className={styles.shuttleContainer}>
-            <div className={`${styles.shuttleCard} ${shuttleData?.message ? styles.disabled : ''}`}>
-              <h2>다음 셔틀</h2>
-              <div className={styles.shuttleInfo}>
-                {shuttleData?.message ? (
-                  <div className={styles.noShuttle}>
-                    <span className={styles.noShuttleMessage}>{shuttleData.message}</span>
+        <div className={styles.busContainer}>
+          {/* 셔틀 정보를 버스 카드 형식으로 표시 */}
+          {!shuttleData?.message && shuttleData?.routes && (
+            <>
+              {/* 기흥역 셔틀 */}
+              {shuttleData.routes.giheung && (
+                <div className={styles.busCard}>
+                  <div className={styles.busNumber}>기흥역 셔틀버스</div>
+                  <div className={styles.busInfo}>
+                    <div className={styles.arrivalTime}>
+                      <span>출발까지</span>
+                      <strong>{formatTime(shuttleData.routes.giheung.time)}</strong>
+                    </div>
                   </div>
-                ) : (
-                  <>
-                    <div className={styles.nextShuttle}>
-                      <span>{shuttleData?.nextShuttle}</span>
-                      <strong>{shuttleData?.time ? formatTime(shuttleData.time) : '-'}</strong>
+                </div>
+              )}
+              
+              {/* 에버라인 + 명지대역 셔틀 또는 명지대역 셔틀 + 에버라인 */}
+              {shuttleData.routes.everline && (
+                <div className={styles.busCard}>
+                  <div className={styles.busNumber}>
+                    {direction === 'fromMJUtoGH' ? '명지대역 셔틀버스 + 에버라인' : '에버라인 + 명지대역 셔틀버스'}
+                  </div>
+                  <div className={styles.busInfo}>
+                    <div className={styles.arrivalTime}>
+                        {direction === 'fromMJUtoGH' ? (
+                          <>
+                            <span>명지대역 셔틀 출발까지</span>
+                            <strong>{formatTime(shuttleData.routes.everline.connection)}</strong>
+                          </>
+                        ) : (
+                            <>
+                              <span>에버라인 출발까지</span>
+                              <strong>{formatTime(shuttleData.routes.everline.time)}</strong>
+                            </>
+                        )}
                     </div>
-                    <div className={styles.otherTimes}>
-                      <div>기흥역 셔틀: {shuttleData?.giheungTime ? formatTime(shuttleData.giheungTime) : '-'}</div>
-                      <div>명지대역 셔틀: {shuttleData?.mjuStationTime ? formatTime(shuttleData.mjuStationTime) : '-'}</div>
-                      <div>에버라인: {shuttleData?.everlineTime ? formatTime(shuttleData.everlineTime) : '-'}</div>
+                    <div className={styles.seats}>
+                      {direction === 'fromMJUtoGH' ? (
+                        <>
+                          에버라인 {formatTime(shuttleData.routes.everline.time)}
+                        </>
+                      ) : (
+                        <>
+                          명지대역 셔틀 {formatTime(shuttleData.routes.everline.connection)}
+                        </>
+                      )}
                     </div>
-                  </>
-                )}
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          {/* 일반 버스 정보 표시 */}
+          {busData.map((bus, index) => (
+            <div key={index} className={styles.busCard}>
+              <div className={styles.busNumber}>{bus.버스번호}</div>
+              <div className={styles.busInfo}>
+                <div className={styles.arrivalTime}>
+                  <span>출발까지</span>
+                  <strong>{bus.도착시간}분</strong>
+                </div>
+                <div className={styles.seats}>{bus.남은좌석수}</div>
               </div>
             </div>
-          </div>
-
-          {/* 버스 정보 표시 */}
-          <div className={styles.busContainer}>
-            {busData.map((bus, index) => (
-              <div key={index} className={styles.busCard}>
-                <div className={styles.busNumber}>{bus.버스번호}</div>
-                <div className={styles.busInfo}>
-                  <div className={styles.arrivalTime}>
-                    <span>도착까지</span>
-                    <strong>{bus.도착시간}분</strong>
-                  </div>
-                  <div className={styles.seats}>{bus.남은좌석수}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </>
+          ))}
+        </div>
       )}
     </main>
   );

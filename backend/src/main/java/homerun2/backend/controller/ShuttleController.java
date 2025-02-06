@@ -43,22 +43,26 @@ public class ShuttleController {
                 return ResponseEntity.ok(Map.of("message", "오늘은 더 이상 셔틀이 없습니다."));
             }
 
-            int eta_el = el != null ? el + 16 : Integer.MAX_VALUE;
-            int eta_g = g != null ? g + 15 : Integer.MAX_VALUE;
+            Map<String, Object> routes = new HashMap<>();
 
-            if (eta_g <= eta_el) {
-                response.put("nextShuttle", "기흥역 셔틀버스");
-                response.put("time", g);
-            } else {
-                response.put("nextShuttle", "명지대역 셔틀버스");
-                response.put("time", m);
+            // 기흥역 셔틀
+            if (g != null) {
+                Map<String, Object> giheungRoute = new HashMap<>();
+                giheungRoute.put("name", "기흥역 셔틀");
+                giheungRoute.put("time", g);
+                routes.put("giheung", giheungRoute);
             }
 
-            // 추가 정보 제공
-            response.put("giheungTime", g);
-            response.put("mjuStationTime", m);
-            response.put("everlineTime", el);
+            // 에버라인 + 명지대역 셔틀 경로
+            if (m != null && el != null) {
+                Map<String, Object> everlineRoute = new HashMap<>();
+                everlineRoute.put("name", "에버라인 + 명지대역 셔틀");
+                everlineRoute.put("time", el);
+                everlineRoute.put("connection", m);
+                routes.put("everline", everlineRoute);
+            }
 
+            response.put("routes", routes);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of("message", "셔틀 정보를 조회할 수 없습니다."));
@@ -87,22 +91,26 @@ public class ShuttleController {
                 return ResponseEntity.ok(Map.of("message", "오늘은 더 이상 셔틀이 없습니다."));
             }
 
-            int eta_m = m != null ? m + 10 : Integer.MAX_VALUE;
-            int eta_g = g != null ? g + 15 : Integer.MAX_VALUE;
+            Map<String, Object> routes = new HashMap<>();
 
-            if (eta_g <= eta_m) {
-                response.put("nextShuttle", "기흥역 셔틀버스");
-                response.put("time", g);
-            } else {
-                response.put("nextShuttle", "명지대역 셔틀버스");
-                response.put("time", m);
+            // 기흥역 셔틀
+            if (g != null) {
+                Map<String, Object> giheungRoute = new HashMap<>();
+                giheungRoute.put("name", "기흥역 셔틀");
+                giheungRoute.put("time", g);
+                routes.put("giheung", giheungRoute);
             }
 
-            // 추가 정보 제공
-            response.put("giheungTime", g);
-            response.put("mjuStationTime", m);
-            response.put("everlineTime", el);
+            // 에버라인 + 명지대역 셔틀 경로
+            if (m != null && el != null) {
+                Map<String, Object> everlineRoute = new HashMap<>();
+                everlineRoute.put("name", "에버라인 + 명지대역 셔틀");
+                everlineRoute.put("time", el);
+                everlineRoute.put("connection", m);
+                routes.put("everline", everlineRoute);
+            }
 
+            response.put("routes", routes);
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of("message", "셔틀 정보를 조회할 수 없습니다."));

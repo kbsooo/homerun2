@@ -90,10 +90,7 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
         <div className={styles.menuContainer}>
           <ul className={styles.menu}>
             <li>
-              <Link href='/chat' className={styles.menuItem}>채팅</Link>
-            </li>
-            <li>
-              <Link href='/taxi' className={styles.menuItem}>택시</Link>
+              <Link href='/taxi' className={styles.menuItem}>택시 모집</Link>
             </li>
             <li>
               {userInfo ? (
