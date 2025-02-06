@@ -89,14 +89,17 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
         </div>
         <div className={styles.menuContainer}>
           <ul className={styles.menu}>
-            <li>
+            <li className={styles.menuListItem}>
               <Link href='/taxi' className={styles.menuItem}>택시 모집</Link>
             </li>
-            <li>
+            <li className={styles.menuListItem}>
               {userInfo ? (
                 <div className={styles.dropdown}>
                   <span className={styles.menuItem}>{userInfo.nickname}님</span>
                   <div className={styles.dropdownContent}>
+                    <Link href='/mypage' className={styles.dropdownItem}>
+                      마이페이지
+                    </Link>
                     <button onClick={handleLogout} className={styles.dropdownItem}>
                       로그아웃
                     </button>
@@ -108,21 +111,25 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
                 </button>
               )}
             </li>
+            <li className={styles.menuListItem}>
+              <div className={styles.toggleWrapper}>
+                <button 
+                  className={`${styles.toggleButton} ${!isDarkMode ? styles.active : ''}`}
+                  onClick={() => onToggleDarkMode(false)}
+                  aria-label="라이트 모드"
+                >
+                  ☀︎
+                </button>
+                <button 
+                  className={`${styles.toggleButton} ${isDarkMode ? styles.active : ''}`}
+                  onClick={() => onToggleDarkMode(true)}
+                  aria-label="다크 모드"
+                >
+                  ☾
+                </button>
+              </div>
+            </li>
           </ul>
-          <div className={styles.toggleWrapper}>
-            <button 
-              className={`${styles.toggleButton} ${!isDarkMode ? styles.active : ''}`}
-              onClick={() => onToggleDarkMode(false)}
-            >
-              라이트
-            </button>
-            <button 
-              className={`${styles.toggleButton} ${isDarkMode ? styles.active : ''}`}
-              onClick={() => onToggleDarkMode(true)}
-            >
-              다크
-            </button>
-          </div>
         </div>
       </nav>
     </header>

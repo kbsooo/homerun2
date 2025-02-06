@@ -60,45 +60,66 @@
 .menuContainer {
   display: flex;
   align-items: center;
-  gap: 2rem;
 }
 
 .menu {
   display: flex;
-  gap: 2rem;
+  gap: 1.5rem;
   list-style: none;
   margin: 0;
   padding: 0;
   align-items: center;
 }
 
-.menuItem {
-  color: #4b5563;
-  text-decoration: none;
-  font-weight: 500;
-  padding: 0.5rem;
-  border-radius: 6px;
-  transition: all 0.2s ease;
+.menuListItem {
+  display: flex;
+  align-items: center;
 }
 
-:global(.darkMode) .menuItem {
-  color: #9ca3af;
+.menuItem {
+  color: var(--theme-color);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+  border: 1px solid var(--theme-color);
+  background: transparent;
+  font-size: 0.9rem;
+  cursor: pointer;
+  min-width: 90px;
+  text-align: center;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  white-space: nowrap;
 }
 
 .menuItem:hover {
+  background-color: var(--theme-color);
+  color: white;
+  transform: translateY(-1px);
+}
+
+.menuItem:active {
+  transform: translateY(0);
+}
+
+:global(.darkMode) .menuItem {
   color: var(--theme-color);
-  background-color: #f3f4f6;
 }
 
 :global(.darkMode) .menuItem:hover {
-  background-color: #2d2d2d;
+  background-color: var(--theme-color);
+  color: white;
 }
 
 .toggleWrapper {
   background: #f3f4f6;
-  padding: 0.375rem;
+  padding: 0.25rem;
   border-radius: 9999px;
   display: flex;
+  flex-direction: column;
   gap: 0.25rem;
 }
 
@@ -107,15 +128,20 @@
 }
 
 .toggleButton {
-  padding: 0.5rem 1rem;
+  padding: 0.5rem;
+  width: 2rem;
+  height: 2rem;
   border: none;
   border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-size: 1.125rem;
   cursor: pointer;
   transition: all 0.2s ease;
   background: transparent;
   color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 :global(.darkMode) .toggleButton {
@@ -134,7 +160,7 @@
 .dropdownContent {
   display: none;
   position: absolute;
-  top: 100%;
+  top: calc(100% + 0.5rem);
   right: 0;
   background-color: white;
   min-width: 200px;
@@ -142,7 +168,12 @@
   border-radius: 8px;
   padding: 0.5rem;
   list-style: none;
-  margin-top: 0.5rem;
+  z-index: 100;
+}
+
+:global(.darkMode) .dropdownContent {
+  background-color: #1e1e1e;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
 .dropdown:hover .dropdownContent {
@@ -151,16 +182,31 @@
 
 .dropdownItem {
   display: block;
+  width: 100%;
   padding: 0.75rem 1rem;
   color: #4b5563;
   text-decoration: none;
   border-radius: 6px;
   transition: all 0.2s ease;
+  text-align: left;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+:global(.darkMode) .dropdownItem {
+  color: #e5e7eb;
 }
 
 .dropdownItem:hover {
   background-color: #f3f4f6;
-  color: #2563eb;
+  color: var(--theme-color);
+}
+
+:global(.darkMode) .dropdownItem:hover {
+  background-color: #374151;
+  color: var(--theme-color);
 }
 
 @media (max-width: 768px) {
@@ -168,29 +214,34 @@
     padding: 1rem;
   }
 
-  .menuContainer {
-    gap: 1rem;
-  }
-
   .menu {
     gap: 1rem;
   }
 
+  .menuItem {
+    padding: 0.4rem 0.875rem;
+    font-size: 0.875rem;
+    min-width: 80px;
+  }
+
   .toggleButton {
-    padding: 0.375rem 0.75rem;
-    font-size: 0.75rem;
+    padding: 0.375rem;
+    width: 1.75rem;
+    height: 1.75rem;
+    font-size: 1rem;
   }
 }
 
 @media (max-width: 640px) {
   .menuContainer {
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 1rem;
   }
 
   .menu {
     flex-wrap: wrap;
     justify-content: center;
+    gap: 0.75rem;
   }
 
   .nav {
@@ -198,8 +249,8 @@
     flex-wrap: nowrap;
   }
 
-  .menu::-webkit-scrollbar {
-    display: none;
+  .toggleWrapper {
+    flex-direction: row;
   }
 
   .dropdownContent {
