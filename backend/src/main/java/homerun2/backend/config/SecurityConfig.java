@@ -22,7 +22,7 @@ public class SecurityConfig {
                 .cors().configurationSource(corsConfigurationSource())
                 .and()
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/**", "/api/shuttle/**", "/api/bus/**").permitAll()
+                        .requestMatchers("/api/auth/**", "/api/shuttle/**", "/bus/**").permitAll()
                         .anyRequest().authenticated())
                 .oauth2Login()
                 .disable();
