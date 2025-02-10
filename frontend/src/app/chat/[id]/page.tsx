@@ -7,6 +7,7 @@ import SockJS from 'sockjs-client';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useThemeContext } from '../../context/ThemeContext';
+import { use } from 'react';
 
 interface Message {
     id: number;
@@ -25,7 +26,8 @@ interface Group {
     memberIds: string[];
 }
 
-export default function ChatPage({ params }: { params: { id: string } }) {
+export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
+    const resolvedParams = use(params);
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [group, setGroup] = useState<Group | null>(null);
@@ -34,46 +36,62 @@ export default function ChatPage({ params }: { params: { id: string } }) {
     const { theme, darkMode, toggleDarkMode } = useThemeContext();
 
     const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+        if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
     };
 
     useEffect(() => {
-        // Fetch group info
-        fetch(`http://localhost:8080/api/taxi/group/${params.id}`)
-            .then(res => res.json())
-            .then(setGroup)
-            .catch(console.error);
+        const initializeWebSocket = () => {
+            const client = new Client({
+                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                onConnect: () => {
+                    console.log('Connected to chat WebSocket');
+                    client.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
+                        const newMsg = JSON.parse(message.body);
+                        setMessages(prev => [...prev, newMsg]);
+                    });
+                    client.subscribe(`/topic/group/${resolvedParams.id}`, (message) => {
+                        const updatedGroup = JSON.parse(message.body);
+                        setGroup(updatedGroup);
+                    });
+                },
+                onStompError: (frame) => {
+                    console.error('STOMP error:', frame);
+                },
+                debug: (str) => {
+                    console.log('STOMP debug:', str);
+                }
+            });
 
-        // Fetch chat history
-        fetch(`http://localhost:8080/api/taxi/chat/${params.id}`)
-            .then(res => res.json())
-            .then(setMessages)
-            .catch(console.error);
+            client.activate();
+            return client;
+        };
 
-        // Setup WebSocket
-        const client = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-            onConnect: () => {
-                console.log('Connected to chat WebSocket');
-                client.subscribe(`/topic/chat/${params.id}`, (message) => {
-                    const newMsg = JSON.parse(message.body);
-                    setMessages(prev => [...prev, newMsg]);
-                });
-                // Subscribe to group updates
-                client.subscribe(`/topic/group/${params.id}`, (message) => {
-                    const updatedGroup = JSON.parse(message.body);
-                    setGroup(updatedGroup);
-                });
-            },
-            onStompError: (frame) => {
-                console.error('STOMP error:', frame);
-            },
-            debug: (str) => {
-                console.log('STOMP debug:', str);
+        // Fetch initial data
+        const fetchData = async () => {
+            try {
+                const [groupResponse, messagesResponse] = await Promise.all([
+                    fetch(`http://localhost:8080/api/taxi/group/${resolvedParams.id}`),
+                    fetch(`http://localhost:8080/api/taxi/chat/${resolvedParams.id}`)
+                ]);
+
+                if (groupResponse.ok) {
+                    const groupData = await groupResponse.json();
+                    setGroup(groupData);
+                }
+
+                if (messagesResponse.ok) {
+                    const messagesData = await messagesResponse.json();
+                    setMessages(messagesData);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
             }
-        });
+        };
 
-        client.activate();
+        fetchData();
+        const client = initializeWebSocket();
         setStompClient(client);
 
         return () => {
@@ -81,14 +99,14 @@ export default function ChatPage({ params }: { params: { id: string } }) {
                 client.deactivate();
             }
         };
-    }, [params.id]);
+    }, [resolvedParams.id]);
 
     useEffect(() => {
         scrollToBottom();
     }, [messages]);
 
     const handleSend = () => {
-        if (!newMessage.trim() || !stompClient) return;
+        if (!newMessage.trim() || !stompClient?.active) return;
 
         const token = localStorage.getItem('token');
         const userInfo = localStorage.getItem('userInfo');
@@ -98,22 +116,26 @@ export default function ChatPage({ params }: { params: { id: string } }) {
             return;
         }
 
-        const { nickname } = JSON.parse(userInfo);
+        try {
+            const { nickname } = JSON.parse(userInfo);
+            const message = {
+                groupId: resolvedParams.id,
+                senderId: token,
+                senderName: nickname,
+                content: newMessage,
+                timestamp: new Date().toISOString()
+            };
 
-        const message = {
-            groupId: params.id,
-            senderId: token,
-            senderName: nickname,
-            content: newMessage,
-            timestamp: new Date().toISOString()
-        };
+            stompClient.publish({
+                destination: '/app/chat.send',
+                body: JSON.stringify(message)
+            });
 
-        stompClient.publish({
-            destination: '/app/chat.send',
-            body: JSON.stringify(message)
-        });
-
-        setNewMessage('');
+            setNewMessage('');
+        } catch (error) {
+            console.error('Error sending message:', error);
+            alert('메시지 전송에 실패했습니다.');
+        }
     };
 
     return (
@@ -121,15 +143,14 @@ export default function ChatPage({ params }: { params: { id: string } }) {
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
             <main className={styles.container}>
                 <div className={styles.header}>
-                    <h2>{group?.destination} 택시 그룹</h2>
-                    <p>그룹 ID: {params.id}</p>
-                    <p>현재 인원: {group?.currentMembers}/4</p>
+                    <h2>#{resolvedParams.id}</h2>
+                    <p>현재 인원: {group?.currentMembers || 0}/4</p>
                 </div>
 
                 <div className={styles.messageContainer}>
                     {messages.map((msg, index) => (
                         <div
-                            key={index}
+                            key={msg.id || index}
                             className={`${styles.message} ${
                                 msg.senderId === localStorage.getItem('token')
                                     ? styles.sent
