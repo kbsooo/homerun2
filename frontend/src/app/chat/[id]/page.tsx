@@ -8,6 +8,8 @@ import Header from '../../components/Header';
 import Footer from '../../components/Footer';
 import { useThemeContext } from '../../context/ThemeContext';
 import { use } from 'react';
+import { useChat } from '../../context/ChatContext';
+import { useRouter } from 'next/navigation';
 
 interface Message {
     id: number;
@@ -28,12 +30,14 @@ interface Group {
 
 export default function ChatPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = use(params);
+    const { setMinimizedChatId, setIsMinimized } = useChat();
     const [messages, setMessages] = useState<Message[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [group, setGroup] = useState<Group | null>(null);
     const [stompClient, setStompClient] = useState<Client | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { theme, darkMode, toggleDarkMode } = useThemeContext();
+    const router = useRouter();
 
     const scrollToBottom = () => {
         if (messagesEndRef.current) {
@@ -138,13 +142,31 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         }
     };
 
+    const handleMinimize = () => {
+        setMinimizedChatId(resolvedParams.id);
+        setIsMinimized(true);
+        router.push('/');  // 홈으로 이동
+    };
+
     return (
         <div className={`${theme} ${darkMode ? 'darkMode' : ''}`}>
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
             <main className={styles.container}>
                 <div className={styles.header}>
-                    <h2>#{resolvedParams.id}</h2>
-                    <p>현재 인원: {group?.currentMembers || 0}/4</p>
+                    <div className={styles.headerContent}>
+                        <h2>#{resolvedParams.id}</h2>
+                        <p>현재 인원: {group?.currentMembers || 0}/4</p>
+                    </div>
+                    <button onClick={handleMinimize} className={styles.minimizeButton}>
+                        <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor" 
+                            className={styles.minimizeIcon}
+                        >
+                            <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm3 10.5a.75.75 0 000-1.5H9a.75.75 0 000 1.5h6z" clipRule="evenodd" />
+                        </svg>
+                    </button>
                 </div>
 
                 <div className={styles.messageContainer}>

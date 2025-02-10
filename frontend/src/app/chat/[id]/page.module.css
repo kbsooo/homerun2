@@ -17,13 +17,47 @@
     background-color: white;
     padding: 1.5rem;
     border-radius: 1rem;
-    text-align: center;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
-:global(.darkMode) .header {
-    background-color: #1e293b;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+.headerContent {
+    text-align: center;
+    flex: 1;
+}
+
+.minimizeButton {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    color: #64748b;
+}
+
+.minimizeButton:hover {
+    background-color: #f1f5f9;
+    color: var(--theme-color, #071d49);
+}
+
+.minimizeIcon {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+:global(.darkMode) .minimizeButton {
+    color: #94a3b8;
+}
+
+:global(.darkMode) .minimizeButton:hover {
+    background-color: #334155;
+    color: #f8fafc;
 }
 
 .header h2 {
