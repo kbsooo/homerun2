@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@types/sockjs-client": "^1.5.4",
+    "sockjs-client": "^1.6.1"
+  }
+}

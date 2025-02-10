@@ -23,9 +23,10 @@ public class TaxiController {
 
     @PostMapping("/join")
     public ResponseEntity<TaxiGroup> joinGroup(
-            @RequestParam String userId,
+            @RequestHeader("Authorization") String authHeader,
             @RequestParam String destination) {
-        TaxiGroup group = taxiGroupService.joinOrCreateGroup(userId, destination);
+        String token = authHeader.replace("Bearer ", "");
+        TaxiGroup group = taxiGroupService.joinOrCreateGroup(token, destination);
         return ResponseEntity.ok(group);
     }
 

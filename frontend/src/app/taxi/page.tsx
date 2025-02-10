@@ -23,6 +23,13 @@ export default function TaxiPage() {
                     setMemberCount(parseInt(message.body));
                 });
             },
+            onWebSocketError: (error) => {
+                console.error('WebSocket error:', error);
+            },
+            webSocketFactory: () => new WebSocket('ws://localhost:8080/ws'),
+            debug: (str) => {
+                console.log(str);
+            }
         });
 
         client.activate();
@@ -41,8 +48,8 @@ export default function TaxiPage() {
 
     const handleJoinGroup = async () => {
         try {
-            const userId = localStorage.getItem('userId'); // From Kakao OAuth
-            if (!userId) {
+            const token = localStorage.getItem('token');
+            if (!token) {
                 alert('로그인이 필요합니다.');
                 return;
             }
@@ -51,8 +58,9 @@ export default function TaxiPage() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
+                    'Authorization': `Bearer ${token}`
                 },
-                body: `userId=${userId}&destination=${destination}`,
+                body: `userId=${token}&destination=${destination}`,
             });
 
             if (response.ok) {
