@@ -1,0 +1,126 @@
+.container {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: calc(100vh - 8rem); /* Account for header and footer */
+    background-color: #f5f5f5;
+    transition: all 0.3s ease;
+}
+
+:global(.darkMode) .container {
+    background-color: #121212;
+}
+
+.toggleContainer {
+    background: white;
+    padding: 0.5rem;
+    border-radius: 9999px;
+    display: flex;
+    gap: 0.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 3rem;
+    position: relative;
+    width: 100%;
+    max-width: 400px;
+}
+
+:global(.darkMode) .toggleContainer {
+    background-color: #1e1e1e;
+}
+
+.toggleContainer::before {
+    content: '방향 선택';
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.875rem;
+    color: #6b7280;
+    white-space: nowrap;
+}
+
+:global(.darkMode) .toggleContainer::before {
+    color: #9ca3af;
+}
+
+.toggleButton {
+    flex: 1;
+    padding: 0.75rem 2rem;
+    border: none;
+    border-radius: 9999px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: transparent;
+    color: #6b7280;
+}
+
+:global(.darkMode) .toggleButton {
+    color: #9ca3af;
+}
+
+.toggleButton.active {
+    background-color: var(--theme-color);
+    color: white;
+}
+
+.infoText {
+    font-size: 1.2rem;
+    color: #333;
+    text-align: center;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 15px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+}
+
+:global(.darkMode) .infoText {
+    background-color: #1e1e1e;
+    color: #e5e7eb;
+}
+
+.joinButton {
+    padding: 1rem 2rem;
+    background: var(--theme-color);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    max-width: 400px;
+}
+
+.joinButton:hover {
+    background: var(--theme-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.joinButton:active {
+    background: var(--theme-active);
+    transform: translateY(0);
+}
+
+@media (max-width: 640px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .toggleButton {
+        padding: 0.625rem 1.5rem;
+        font-size: 0.9rem;
+    }
+
+    .infoText {
+        font-size: 1.1rem;
+        padding: 1.25rem;
+    }
+}
