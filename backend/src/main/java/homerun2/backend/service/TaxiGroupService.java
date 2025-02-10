@@ -31,6 +31,11 @@ public class TaxiGroupService {
 
             // Notify all clients about the updated group count
             updateGroupCount(destination);
+
+            // Notify group members about the update
+            messagingTemplate.convertAndSend(
+                    "/topic/group/" + group.getGroupId(),
+                    group);
         }
 
         return group;

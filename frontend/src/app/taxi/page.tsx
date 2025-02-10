@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useThemeContext } from '../context/ThemeContext';
+import SockJS from 'sockjs-client';
 
 export default function TaxiPage() {
     const [destination, setDestination] = useState<'명지대' | '기흥역'>('명지대');
@@ -17,18 +18,22 @@ export default function TaxiPage() {
 
     useEffect(() => {
         const client = new Client({
-            brokerURL: 'ws://localhost:8080/ws',
+            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
             onConnect: () => {
+                console.log('Connected to WebSocket');
                 client.subscribe(`/topic/taxi-count/${destination}`, (message) => {
+                    console.log('Received count:', message.body);
                     setMemberCount(parseInt(message.body));
                 });
             },
             onWebSocketError: (error) => {
                 console.error('WebSocket error:', error);
             },
-            webSocketFactory: () => new WebSocket('ws://localhost:8080/ws'),
+            onStompError: (frame) => {
+                console.error('STOMP error:', frame);
+            },
             debug: (str) => {
-                console.log(str);
+                console.log('STOMP debug:', str);
             }
         });
 
@@ -36,7 +41,9 @@ export default function TaxiPage() {
         setStompClient(client);
 
         return () => {
-            client.deactivate();
+            if (client.active) {
+                client.deactivate();
+            }
         };
     }, [destination]);
 
