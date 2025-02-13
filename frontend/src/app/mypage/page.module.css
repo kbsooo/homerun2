@@ -1,0 +1,281 @@
+.pageContainer {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: #f9fafb;
+  transition: background-color 0.3s ease;
+}
+
+:global(.darkMode) .pageContainer {
+  background-color: #111827;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 2rem;
+  color: var(--theme-color);
+  text-align: center;
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 2rem;
+  min-height: 600px;
+  margin-top: 2rem;
+}
+
+.historyList {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  overflow-y: auto;
+  max-height: 600px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+:global(.darkMode) .historyList {
+  background: #1e1e1e;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-color: #374151;
+}
+
+.historyItem {
+  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+:global(.darkMode) .historyItem {
+  border-bottom-color: #374151;
+}
+
+.historyItem:hover {
+  background: #f3f4f6;
+  transform: translateY(-1px);
+}
+
+:global(.darkMode) .historyItem:hover {
+  background: #2d2d2d;
+}
+
+.historyItem.selected {
+  background: var(--theme-color);
+  color: white;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.historyHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.date {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+
+.roomId {
+  font-weight: 500;
+  color: var(--theme-color);
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  background: rgba(var(--theme-rgb), 0.1);
+}
+
+.selected .date,
+.selected .roomId {
+  color: white;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.lastMessage {
+  font-size: 0.875rem;
+  color: #4b5563;
+  margin-bottom: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+:global(.darkMode) .lastMessage {
+  color: #9ca3af;
+}
+
+.selected .lastMessage {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.participants {
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+:global(.darkMode) .participants {
+  color: #9ca3af;
+}
+
+.selected .participants {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.messageList {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  padding: 1.5rem;
+  overflow-y: auto;
+  max-height: 600px;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s ease;
+}
+
+:global(.darkMode) .messageList {
+  background: #1e1e1e;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border-color: #374151;
+}
+
+.messageItem {
+  margin-bottom: 1.5rem;
+}
+
+.messageHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.sender {
+  font-weight: 500;
+  color: var(--theme-color);
+}
+
+.time {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+:global(.darkMode) .time {
+  color: #9ca3af;
+}
+
+.messageContent {
+  background: #f3f4f6;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  color: #4b5563;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+:global(.darkMode) .messageContent {
+  background: #2d2d2d;
+  color: #e5e7eb;
+}
+
+.emptyState {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: #6b7280;
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+:global(.darkMode) .emptyState {
+  color: #9ca3af;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 200px;
+  color: var(--theme-color);
+  font-size: 0.875rem;
+}
+
+.error {
+  background-color: #fee2e2;
+  border: 1px solid #ef4444;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 1rem 0;
+  text-align: center;
+  color: #dc2626;
+}
+
+:global(.darkMode) .error {
+  background-color: #7f1d1d;
+  border-color: #ef4444;
+  color: #fca5a5;
+}
+
+.retryButton {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: background-color 0.2s ease;
+}
+
+.retryButton:hover {
+  background-color: #b91c1c;
+}
+
+:global(.darkMode) .retryButton {
+  background-color: #ef4444;
+}
+
+:global(.darkMode) .retryButton:hover {
+  background-color: #dc2626;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 1rem;
+  }
+
+  .content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .historyList,
+  .messageList {
+    max-height: 400px;
+  }
+
+  .title {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+} 

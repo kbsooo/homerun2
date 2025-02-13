@@ -4,9 +4,11 @@ import homerun2.backend.model.TaxiGroup;
 import homerun2.backend.repository.TaxiGroupRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 
@@ -15,62 +17,134 @@ import java.util.Random;
 public class TaxiGroupService {
     private final TaxiGroupRepository taxiGroupRepository;
     private final SimpMessagingTemplate messagingTemplate;
-    private static final int MAX_MEMBERS = 4;
+    private final Random random = new Random();
 
     @Transactional
     public TaxiGroup joinOrCreateGroup(String userId, String destination) {
-        // Try to find an existing active group with space
-        TaxiGroup group = taxiGroupRepository
-                .findByDestinationAndActiveTrueAndCurrentMembersLessThan(destination, MAX_MEMBERS)
-                .orElseGet(() -> createNewGroup(destination));
+        // Check if user is already in an active group
+        List<TaxiGroup> activeGroups = taxiGroupRepository.findByIsActiveTrueAndMembersContaining(userId);
+        if (!activeGroups.isEmpty()) {
+            throw new IllegalStateException("ALREADY_IN_GROUP");
+        }
 
-        if (!group.getMemberIds().contains(userId)) {
-            group.getMemberIds().add(userId);
-            group.setCurrentMembers(group.getCurrentMembers() + 1);
+        // Try to find an existing waiting group
+        TaxiGroup group = taxiGroupRepository.findFirstByDestinationAndStatusAndIsActiveTrue(
+                destination, TaxiGroup.GroupStatus.WAITING);
+
+        if (group == null) {
+            // Create new group with 4-digit ID
+            String groupId;
+            do {
+                groupId = String.format("%04d", random.nextInt(10000));
+            } while (taxiGroupRepository.findByGroupId(groupId).isPresent());
+
+            group = new TaxiGroup(groupId, destination, userId);
             group = taxiGroupRepository.save(group);
+        } else {
+            group.addMember(userId);
 
-            // Notify all clients about the updated group count
-            updateGroupCount(destination);
+            if (group.isFull()) {
+                group.setStatus(TaxiGroup.GroupStatus.COMPLETE);
+            }
 
-            // Notify group members about the update
-            messagingTemplate.convertAndSend(
-                    "/topic/group/" + group.getGroupId(),
-                    group);
+            group = taxiGroupRepository.save(group);
+        }
+
+        // Notify all subscribers about the group update
+        messagingTemplate.convertAndSend(
+                "/topic/taxi-group/" + group.getGroupId(),
+                new GroupUpdateMessage(group.getStatus(), group.getMemberCount()));
+
+        return group;
+    }
+
+    @Transactional
+    public TaxiGroup getGroupById(String groupId) {
+        TaxiGroup group = taxiGroupRepository.findByGroupId(groupId)
+                .orElseThrow(() -> new IllegalArgumentException("Group not found"));
+
+        // Update member count if needed
+        if (group.isExpired()) {
+            group.setStatus(TaxiGroup.GroupStatus.EXPIRED);
+            group.setActive(false);
+            taxiGroupRepository.save(group);
         }
 
         return group;
     }
 
-    private TaxiGroup createNewGroup(String destination) {
-        TaxiGroup newGroup = new TaxiGroup();
-        newGroup.setGroupId(generateGroupId());
-        newGroup.setDestination(destination);
-        newGroup.setCurrentMembers(0);
-        return taxiGroupRepository.save(newGroup);
-    }
-
-    private String generateGroupId() {
-        Random random = new Random();
-        String groupId;
-        do {
-            groupId = String.format("%04d", random.nextInt(10000));
-        } while (taxiGroupRepository.findByGroupId(groupId).isPresent());
-        return groupId;
-    }
-
+    @Transactional
     public void updateGroupCount(String destination) {
-        List<TaxiGroup> activeGroups = taxiGroupRepository.findByDestinationAndActiveTrue(destination);
-        int totalMembers = activeGroups.stream()
-                .mapToInt(TaxiGroup::getCurrentMembers)
-                .sum();
-
-        messagingTemplate.convertAndSend(
-                "/topic/taxi-count/" + destination,
-                totalMembers);
+        int count = taxiGroupRepository.countByDestinationAndStatusAndIsActiveTrue(
+                destination, TaxiGroup.GroupStatus.WAITING);
+        messagingTemplate.convertAndSend("/topic/taxi-count/" + destination, count);
     }
 
-    public TaxiGroup getGroupById(String groupId) {
-        return taxiGroupRepository.findByGroupId(groupId)
-                .orElseThrow(() -> new RuntimeException("Group not found"));
+    @Scheduled(fixedRate = 1000) // Check every second
+    @Transactional
+    public void checkWaitingGroups() {
+        LocalDateTime now = LocalDateTime.now();
+        List<TaxiGroup> waitingGroups = taxiGroupRepository.findByStatusAndIsActiveTrue(
+                TaxiGroup.GroupStatus.WAITING);
+
+        for (TaxiGroup group : waitingGroups) {
+            if (now.isAfter(group.getCreatedAt().plusSeconds(15))) {
+                if (group.getMemberCount() > 1) {
+                    group.setStatus(TaxiGroup.GroupStatus.PARTIAL);
+                } else {
+                    group.setStatus(TaxiGroup.GroupStatus.FAILED);
+                }
+                taxiGroupRepository.save(group);
+
+                messagingTemplate.convertAndSend(
+                        "/topic/taxi-group/" + group.getGroupId(),
+                        new GroupUpdateMessage(group.getStatus(), group.getMemberCount()));
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 60000) // Check every minute
+    @Transactional
+    public void checkExpiredGroups() {
+        LocalDateTime now = LocalDateTime.now();
+        List<TaxiGroup> activeGroups = taxiGroupRepository.findByIsActiveTrue();
+
+        for (TaxiGroup group : activeGroups) {
+            if (group.isExpired()) {
+                group.setStatus(TaxiGroup.GroupStatus.EXPIRED);
+                group.setActive(false);
+                taxiGroupRepository.save(group);
+            }
+        }
+    }
+
+    @Scheduled(fixedRate = 3600000) // Check every hour
+    @Transactional
+    public void deleteOldGroups() {
+        List<TaxiGroup> inactiveGroups = taxiGroupRepository.findByIsActiveFalse();
+
+        for (TaxiGroup group : inactiveGroups) {
+            if (group.shouldBeDeleted()) {
+                taxiGroupRepository.delete(group);
+            }
+        }
+    }
+
+    private static class GroupUpdateMessage {
+        private final TaxiGroup.GroupStatus status;
+        private final int memberCount;
+
+        public GroupUpdateMessage(TaxiGroup.GroupStatus status, int memberCount) {
+            this.status = status;
+            this.memberCount = memberCount;
+        }
+
+        public TaxiGroup.GroupStatus getStatus() {
+            return status;
+        }
+
+        public int getMemberCount() {
+            return memberCount;
+        }
     }
 }

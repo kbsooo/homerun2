@@ -8,11 +8,14 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useThemeContext } from '../context/ThemeContext';
 import SockJS from 'sockjs-client';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function TaxiPage() {
     const [destination, setDestination] = useState<'명지대' | '기흥역'>('명지대');
     const [memberCount, setMemberCount] = useState(0);
     const [stompClient, setStompClient] = useState<Client | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+    const [loadingMessage, setLoadingMessage] = useState('모집중...');
     const router = useRouter();
     const { theme, darkMode, toggleDarkMode } = useThemeContext();
 
@@ -48,7 +51,6 @@ export default function TaxiPage() {
     }, [destination]);
 
     useEffect(() => {
-        // Initial count fetch
         fetch(`http://localhost:8080/api/taxi/count/${destination}`)
             .catch(console.error);
     }, [destination]);
@@ -61,22 +63,91 @@ export default function TaxiPage() {
                 return;
             }
 
+            setIsLoading(true);
+            setLoadingMessage('모집중...');
+
             const response = await fetch('http://localhost:8080/api/taxi/join', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
-                body: `userId=${token}&destination=${destination}`,
+                body: JSON.stringify({
+                    destination: destination
+                })
             });
 
-            if (response.ok) {
-                const group = await response.json();
-                router.push(`/chat/${group.groupId}`);
+            if (!response.ok) {
+                const errorData = await response.json();
+                if (errorData.message === 'ALREADY_IN_GROUP') {
+                    alert('이미 다른 택시 그룹에 참여중입니다.');
+                    setIsLoading(false);
+                    return;
+                }
+                throw new Error(errorData.message);
             }
+
+            const { groupId, status, memberCount } = await response.json();
+
+            if (status === 'WAITING') {
+                let timeLeft = 15;
+                const timer = setInterval(() => {
+                    timeLeft--;
+                    setLoadingMessage(`모집중... ${timeLeft}초 남음`);
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        checkGroupStatus(groupId);
+                    }
+                }, 1000);
+
+                // Subscribe to group updates
+                stompClient?.subscribe(`/topic/taxi-group/${groupId}`, (message) => {
+                    const groupStatus = JSON.parse(message.body);
+                    if (groupStatus.status === 'COMPLETE' || groupStatus.status === 'PARTIAL') {
+                        clearInterval(timer);
+                        handleGroupComplete(groupId, groupStatus);
+                    }
+                });
+            } else {
+                handleGroupComplete(groupId, { status, memberCount });
+            }
+
         } catch (error) {
             console.error('Error joining group:', error);
             alert('그룹 참가 중 오류가 발생했습니다.');
+            setIsLoading(false);
+        }
+    };
+
+    const checkGroupStatus = async (groupId: string) => {
+        try {
+            const response = await fetch(`http://localhost:8080/api/taxi/group/${groupId}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            
+            if (response.ok) {
+                const groupStatus = await response.json();
+                handleGroupComplete(groupId, groupStatus);
+            }
+        } catch (error) {
+            console.error('Error checking group status:', error);
+            setIsLoading(false);
+        }
+    };
+
+    const handleGroupComplete = (groupId: string, groupStatus: any) => {
+        setIsLoading(false);
+        
+        if (groupStatus.status === 'COMPLETE') {
+            router.push(`/chat/${groupId}`);
+        } else if (groupStatus.status === 'PARTIAL') {
+            alert(`${groupStatus.memberCount}명이 모였습니다. 적은 인원으로 채팅방을 개설합니다.`);
+            router.push(`/chat/${groupId}`);
+        } else if (groupStatus.status === 'FAILED') {
+            alert('모집에 실패했습니다.');
+            router.push('/taxi');
         }
     };
 
@@ -84,28 +155,34 @@ export default function TaxiPage() {
         <div className={`${theme} ${darkMode ? 'darkMode' : ''}`}>
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
             <main className={styles.container}>
-                <div className={styles.toggleContainer}>
-                    <button
-                        className={`${styles.toggleButton} ${destination === '명지대' ? styles.active : ''}`}
-                        onClick={() => setDestination('명지대')}
-                    >
-                        명지대행
-                    </button>
-                    <button
-                        className={`${styles.toggleButton} ${destination === '기흥역' ? styles.active : ''}`}
-                        onClick={() => setDestination('기흥역')}
-                    >
-                        기흥역행
-                    </button>
-                </div>
+                {isLoading ? (
+                    <LoadingSpinner message={loadingMessage} />
+                ) : (
+                    <>
+                        <div className={styles.toggleContainer}>
+                            <button
+                                className={`${styles.toggleButton} ${destination === '명지대' ? styles.active : ''}`}
+                                onClick={() => setDestination('명지대')}
+                            >
+                                명지대행
+                            </button>
+                            <button
+                                className={`${styles.toggleButton} ${destination === '기흥역' ? styles.active : ''}`}
+                                onClick={() => setDestination('기흥역')}
+                            >
+                                기흥역행
+                            </button>
+                        </div>
 
-                <div className={styles.infoText}>
-                    현재 {destination}으로 모집중인 사람이 {memberCount}명 있습니다.
-                </div>
+                        <div className={styles.infoText}>
+                            현재 {destination}으로 모집중인 사람이 {memberCount}명 있습니다.
+                        </div>
 
-                <button className={styles.joinButton} onClick={handleJoinGroup}>
-                    택시 그룹 모집하기
-                </button>
+                        <button className={styles.joinButton} onClick={handleJoinGroup}>
+                            택시 그룹 모집하기
+                        </button>
+                    </>
+                )}
             </main>
             <Footer />
         </div>

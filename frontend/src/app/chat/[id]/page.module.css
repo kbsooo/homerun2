@@ -23,6 +23,10 @@
     align-items: center;
 }
 
+:global(.darkMode) .header {
+    background-color: #1e293b;
+}
+
 .headerContent {
     text-align: center;
     flex: 1;
@@ -61,26 +65,31 @@
 }
 
 .header h2 {
-    font-size: 2rem;
+    font-size: 1.5rem;
     margin-bottom: 0.75rem;
-    font-weight: 700;
-    color: var(--theme-color, #071d49);
+    font-weight: 600;
+    color: #1e293b;
     letter-spacing: 0.5px;
+    background-color: #f1f5f9;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    display: inline-block;
 }
 
 :global(.darkMode) .header h2 {
     color: #f8fafc;
+    background-color: #334155;
 }
 
 .header p {
-    color: #64748b;
-    font-size: 0.875rem;
+    color: #1e293b;
+    font-size: 1rem;
     margin: 0.25rem 0;
     font-weight: 500;
 }
 
 :global(.darkMode) .header p {
-    color: #94a3b8;
+    color: #e2e8f0;
 }
 
 .messageContainer {
