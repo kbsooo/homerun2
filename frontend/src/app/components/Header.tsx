@@ -1,5 +1,7 @@
 // app/components/Header.tsx
-import React, { useEffect, useState } from 'react';
+'use client';
+
+import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import styles from './Header.module.css';
 
@@ -15,6 +17,8 @@ interface UserInfo {
 
 export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check if token exists in localStorage
@@ -47,6 +51,19 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
     }
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   const handleLogin = () => {
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
     const REDIRECT_URI = encodeURIComponent('http://localhost:8080/api/auth/kakao/callback');
@@ -77,6 +94,11 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
     localStorage.removeItem('token');
     localStorage.removeItem('userInfo');
     setUserInfo(null);
+    setIsDropdownOpen(false);
+  };
+
+  const toggleDropdown = () => {
+    setIsDropdownOpen(!isDropdownOpen);
   };
 
   return (
@@ -94,9 +116,11 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
             </li>
             <li className={styles.menuListItem}>
               {userInfo ? (
-                <div className={styles.dropdown}>
-                  <span className={styles.menuItem}>{userInfo.nickname}님</span>
-                  <div className={styles.dropdownContent}>
+                <div className={styles.dropdown} ref={dropdownRef}>
+                  <button onClick={toggleDropdown} className={styles.menuItem}>
+                    {userInfo.nickname}님
+                  </button>
+                  <div className={`${styles.dropdownContent} ${isDropdownOpen ? styles.show : ''}`}>
                     <Link href='/mypage' className={styles.dropdownItem}>
                       마이페이지
                     </Link>

@@ -169,6 +169,9 @@
   padding: 0.5rem;
   list-style: none;
   z-index: 100;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 :global(.darkMode) .dropdownContent {
@@ -176,8 +179,10 @@
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
 }
 
-.dropdown:hover .dropdownContent {
+.dropdownContent.show {
   display: block;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .dropdownItem {
