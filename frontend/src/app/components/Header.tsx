@@ -5,6 +5,8 @@ import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import styles from './Header.module.css';
 import { useThemeContext } from '../context/ThemeContext';
+import { usePathname } from 'next/navigation';
+import { useChat } from '../context/ChatContext';
 
 interface UserInfo {
   nickname: string;
@@ -16,6 +18,8 @@ export default function Header() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const { darkMode, toggleDarkMode } = useThemeContext();
+  const pathname = usePathname();
+  const { setMinimizedChatId, setIsMinimized } = useChat();
 
   useEffect(() => {
     // Check if token exists in localStorage
@@ -98,11 +102,22 @@ export default function Header() {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
+  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // If we're in a chat room
+    if (pathname.startsWith('/chat/')) {
+      const chatId = pathname.split('/').pop();
+      if (chatId) {
+        setMinimizedChatId(chatId);
+        setIsMinimized(true);
+      }
+    }
+  };
+
   return (
     <header className={styles.header}>
       <nav className={styles.nav}>
         <div className={styles.logo}>
-          <Link href='/' className={styles.logoLink}>
+          <Link href='/' className={styles.logoLink} onClick={handleLogoClick}>
             HOMERUN
           </Link>
         </div>

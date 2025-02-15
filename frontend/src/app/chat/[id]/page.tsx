@@ -142,10 +142,25 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         }
     };
 
+    // Automatically minimize chat when navigating away
+    useEffect(() => {
+        const handleRouteChange = () => {
+            setMinimizedChatId(resolvedParams.id);
+            setIsMinimized(true);
+        };
+
+        window.addEventListener('popstate', handleRouteChange);
+        
+        // Cleanup
+        return () => {
+            window.removeEventListener('popstate', handleRouteChange);
+        };
+    }, [resolvedParams.id, setMinimizedChatId, setIsMinimized]);
+
     const handleMinimize = () => {
         setMinimizedChatId(resolvedParams.id);
         setIsMinimized(true);
-        router.push('/');  // 홈으로 이동
+        router.push('/');
     };
 
     // Ensure dark mode and direction are applied
@@ -160,7 +175,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 <div className={styles.header}>
                     <div className={styles.headerContent}>
                         <h2>#{resolvedParams.id}</h2>
-                        <p>현재 인원: {group?.currentMembers || 0}/4</p>
+                        <span className={styles.memberCount}>
+                            {group?.currentMembers || 0}명
+                        </span>
                     </div>
                     <button onClick={handleMinimize} className={styles.minimizeButton}>
                         <svg 
