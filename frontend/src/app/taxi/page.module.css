@@ -1,15 +1,47 @@
 .container {
-    padding: 2rem;
+    padding-top: calc(64px + 2rem); /* Header height + original padding */
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-bottom: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: calc(100vh - 8rem); /* Account for header and footer */
+    min-height: 100vh;
     background-color: #f5f5f5;
     transition: all 0.3s ease;
 }
 
+/* Yellow Theme */
+:global(.yellowTheme) .container {
+    --theme-color: #e6a700;
+    --theme-hover: #cc9500;
+    --theme-active: #b38300;
+    background-color: #f5f5f5;
+}
+
+/* Blue Theme */
+:global(.blueTheme) .container {
+    --theme-color: #071d49;
+    --theme-hover: #0a2a6e;
+    --theme-active: #0d3693;
+    background-color: #f5f5f5;
+}
+
+/* Dark Mode */
 :global(.darkMode) .container {
     background-color: #121212;
+}
+
+:global(.darkMode.yellowTheme) .container {
+    --theme-color: #fabe00;
+    --theme-hover: #e5ad00;
+    --theme-active: #d19e00;
+}
+
+:global(.darkMode.blueTheme) .container {
+    --theme-color: #005eb8;
+    --theme-hover: #004e99;
+    --theme-active: #003d7a;
 }
 
 .toggleContainer {
@@ -19,14 +51,11 @@
     display: flex;
     gap: 0.5rem;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    margin-top: 2rem;
     margin-bottom: 3rem;
     position: relative;
     width: 100%;
     max-width: 400px;
-}
-
-:global(.darkMode) .toggleContainer {
-    background-color: #1e1e1e;
 }
 
 .toggleContainer::before {
@@ -40,13 +69,16 @@
     white-space: nowrap;
 }
 
+:global(.darkMode) .toggleContainer {
+    background-color: #1e1e1e;
+}
+
 :global(.darkMode) .toggleContainer::before {
     color: #9ca3af;
 }
 
 .toggleButton {
-    flex: 1;
-    padding: 0.75rem 2rem;
+    padding: 0.75rem 1.5rem;
     border: none;
     border-radius: 9999px;
     font-size: 1rem;
@@ -55,6 +87,8 @@
     transition: all 0.2s ease;
     background: transparent;
     color: #6b7280;
+    min-width: 90px;
+    flex: 1;
 }
 
 :global(.darkMode) .toggleButton {
@@ -115,8 +149,12 @@
     }
 
     .toggleButton {
-        padding: 0.625rem 1.5rem;
-        font-size: 0.9rem;
+        padding: 0.625rem 1rem;
+        min-width: 80px;
+    }
+
+    .toggleContainer {
+        margin-bottom: 2.5rem;
     }
 
     .infoText {

@@ -5,6 +5,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import styles from './page.module.css';
 import { ChatHistory, ChatMessage } from '../api/chat/route';
+import { useThemeContext } from '../contexts/ThemeContext';
 
 export default function MyPage() {
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
@@ -13,6 +14,8 @@ export default function MyPage() {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const { theme, darkMode, toggleDarkMode } = useThemeContext();
 
   useEffect(() => {
     // 다크모드 상태 불러오기
@@ -27,6 +30,10 @@ export default function MyPage() {
       fetchChatMessages(selectedChat);
     }
   }, [selectedChat]);
+
+  useEffect(() => {
+    document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
+  }, [theme, darkMode]);
 
   const handleToggleDarkMode = (value: boolean) => {
     setIsDarkMode(value);

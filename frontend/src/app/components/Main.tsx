@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from './Main.module.css';
+import { useThemeContext } from '../context/ThemeContext';
 
 interface BusInfo {
   도착시간: string;
@@ -23,15 +24,7 @@ interface ShuttleInfo {
   };
 }
 
-type Direction = 'fromMJUtoGH' | 'fromGHtoMJU';
-
-interface MainProps {
-  isDarkMode: boolean;
-  direction: Direction;
-  onDirectionChange: (direction: Direction) => void;
-}
-
-export default function Main({ isDarkMode, direction, onDirectionChange }: MainProps) {
+export default function Main() {
   const [busData, setBusData] = useState<BusInfo[]>([]);
   const [shuttleData, setShuttleData] = useState<ShuttleInfo | null>(null);
   const [currentTime, setCurrentTime] = useState({
@@ -39,6 +32,7 @@ export default function Main({ isDarkMode, direction, onDirectionChange }: MainP
     period: ""
   });
   const [error, setError] = useState<string | null>(null);
+  const { theme, darkMode, direction, setDirection } = useThemeContext();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -154,7 +148,7 @@ export default function Main({ isDarkMode, direction, onDirectionChange }: MainP
     <main className={`
       ${styles.container} 
       ${direction === 'fromMJUtoGH' ? styles.yellowTheme : styles.blueTheme}
-      ${isDarkMode ? styles.darkMode : ''}
+      ${darkMode ? styles.darkMode : ''}
     `}>
       <div className={styles.timeDisplay}>
         <span className={styles.period}>{currentTime.period}</span>
@@ -164,13 +158,13 @@ export default function Main({ isDarkMode, direction, onDirectionChange }: MainP
       <div className={styles.toggleWrapper}>
         <button 
           className={`${styles.toggleButton} ${direction === 'fromMJUtoGH' ? styles.active : ''}`} 
-          onClick={() => onDirectionChange('fromMJUtoGH')}
+          onClick={() => setDirection('fromMJUtoGH')}
         >
           기흥역
         </button>
         <button 
           className={`${styles.toggleButton} ${direction === 'fromGHtoMJU' ? styles.active : ''}`}
-          onClick={() => onDirectionChange('fromGHtoMJU')}
+          onClick={() => setDirection('fromGHtoMJU')}
         >
           명지대
         </button>

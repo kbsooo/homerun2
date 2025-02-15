@@ -148,6 +148,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         router.push('/');  // 홈으로 이동
     };
 
+    // Ensure dark mode and direction are applied
+    useEffect(() => {
+        document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
+    }, [theme, darkMode]);
+
     return (
         <div className={`${theme} ${darkMode ? 'darkMode' : ''}`}>
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />

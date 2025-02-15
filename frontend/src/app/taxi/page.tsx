@@ -11,49 +11,57 @@ import SockJS from 'sockjs-client';
 import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function TaxiPage() {
-    const [destination, setDestination] = useState<'명지대' | '기흥역'>('명지대');
     const [memberCount, setMemberCount] = useState(0);
     const [stompClient, setStompClient] = useState<Client | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('모집중...');
     const router = useRouter();
-    const { theme, darkMode, toggleDarkMode } = useThemeContext();
+    const { theme, darkMode, toggleDarkMode, direction, setDirection } = useThemeContext();
+
+    // Convert taxi destination to/from app direction
+    const taxiDestination = direction === 'fromMJUtoGH' ? '기흥역' : '명지대';
 
     useEffect(() => {
-        const client = new Client({
-            webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
-            onConnect: () => {
-                console.log('Connected to WebSocket');
-                client.subscribe(`/topic/taxi-count/${destination}`, (message) => {
-                    console.log('Received count:', message.body);
-                    setMemberCount(parseInt(message.body));
-                });
-            },
-            onWebSocketError: (error) => {
-                console.error('WebSocket error:', error);
-            },
-            onStompError: (frame) => {
-                console.error('STOMP error:', frame);
-            },
-            debug: (str) => {
-                console.log('STOMP debug:', str);
-            }
-        });
+        let client: Client | null = null;
+        
+        const initializeWebSocket = () => {
+            client = new Client({
+                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                onConnect: () => {
+                    console.log('Connected to WebSocket');
+                    client?.subscribe(`/topic/taxi-count/${taxiDestination}`, (message) => {
+                        console.log('Received count:', message.body);
+                        setMemberCount(parseInt(message.body));
+                    });
+                },
+                onWebSocketError: (error) => {
+                    console.error('WebSocket error:', error);
+                },
+                onStompError: (frame) => {
+                    console.error('STOMP error:', frame);
+                },
+                debug: (str) => {
+                    console.log('STOMP debug:', str);
+                }
+            });
 
-        client.activate();
-        setStompClient(client);
+            client.activate();
+            setStompClient(client);
+        };
+
+        initializeWebSocket();
 
         return () => {
-            if (client.active) {
+            if (client?.active) {
                 client.deactivate();
             }
         };
-    }, [destination]);
+    }, [taxiDestination]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/api/taxi/count/${destination}`)
+        fetch(`http://localhost:8080/api/taxi/count/${taxiDestination}`)
             .catch(console.error);
-    }, [destination]);
+    }, [taxiDestination]);
 
     const handleJoinGroup = async () => {
         try {
@@ -73,7 +81,7 @@ export default function TaxiPage() {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    destination: destination
+                    destination: taxiDestination
                 })
             });
 
@@ -151,8 +159,12 @@ export default function TaxiPage() {
         }
     };
 
+    const handleDestinationChange = (newDestination: '명지대' | '기흥역') => {
+        setDirection(newDestination === '기흥역' ? 'fromMJUtoGH' : 'fromGHtoMJU');
+    };
+
     return (
-        <div className={`${theme} ${darkMode ? 'darkMode' : ''}`}>
+        <div>
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
             <main className={styles.container}>
                 {isLoading ? (
@@ -161,21 +173,21 @@ export default function TaxiPage() {
                     <>
                         <div className={styles.toggleContainer}>
                             <button
-                                className={`${styles.toggleButton} ${destination === '명지대' ? styles.active : ''}`}
-                                onClick={() => setDestination('명지대')}
+                                className={`${styles.toggleButton} ${taxiDestination === '명지대' ? styles.active : ''}`}
+                                onClick={() => handleDestinationChange('명지대')}
                             >
                                 명지대행
                             </button>
                             <button
-                                className={`${styles.toggleButton} ${destination === '기흥역' ? styles.active : ''}`}
-                                onClick={() => setDestination('기흥역')}
+                                className={`${styles.toggleButton} ${taxiDestination === '기흥역' ? styles.active : ''}`}
+                                onClick={() => handleDestinationChange('기흥역')}
                             >
                                 기흥역행
                             </button>
                         </div>
 
                         <div className={styles.infoText}>
-                            현재 {destination}으로 모집중인 사람이 {memberCount}명 있습니다.
+                            현재 {taxiDestination}으로 모집중인 사람이 {memberCount}명 있습니다.
                         </div>
 
                         <button className={styles.joinButton} onClick={handleJoinGroup}>

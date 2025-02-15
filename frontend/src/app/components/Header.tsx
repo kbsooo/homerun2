@@ -4,21 +4,18 @@
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
 import styles from './Header.module.css';
-
-interface HeaderProps {
-  isDarkMode: boolean;
-  onToggleDarkMode: (value: boolean) => void;
-}
+import { useThemeContext } from '../context/ThemeContext';
 
 interface UserInfo {
   nickname: string;
   profileImage: string;
 }
 
-export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
+export default function Header() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { darkMode, toggleDarkMode } = useThemeContext();
 
   useEffect(() => {
     // Check if token exists in localStorage
@@ -138,15 +135,15 @@ export default function Header({ isDarkMode, onToggleDarkMode }: HeaderProps) {
             <li className={styles.menuListItem}>
               <div className={styles.toggleWrapper}>
                 <button 
-                  className={`${styles.toggleButton} ${!isDarkMode ? styles.active : ''}`}
-                  onClick={() => onToggleDarkMode(false)}
+                  className={`${styles.toggleButton} ${!darkMode ? styles.active : ''}`}
+                  onClick={() => toggleDarkMode(false)}
                   aria-label="라이트 모드"
                 >
                   ☀︎
                 </button>
                 <button 
-                  className={`${styles.toggleButton} ${isDarkMode ? styles.active : ''}`}
-                  onClick={() => onToggleDarkMode(true)}
+                  className={`${styles.toggleButton} ${darkMode ? styles.active : ''}`}
+                  onClick={() => toggleDarkMode(true)}
                   aria-label="다크 모드"
                 >
                   ☾
