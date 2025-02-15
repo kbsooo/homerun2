@@ -10,7 +10,7 @@
 }
 
 :global(.darkMode) .container {
-    background-color: #0f172a;
+    background-color: #121212;
 }
 
 .header {
@@ -24,7 +24,7 @@
 }
 
 :global(.darkMode) .header {
-    background-color: #1e293b;
+    background-color: #1e1e1e;
 }
 
 .headerContent {
@@ -110,7 +110,7 @@
 }
 
 :global(.darkMode) .messageContainer {
-    background-color: #1e293b;
+    background-color: #1e1e1e;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
@@ -154,8 +154,8 @@
 }
 
 :global(.darkMode) .message.received {
-    background-color: #334155;
-    color: #f8fafc;
+    background-color: #2d2d2d;
+    color: #e5e7eb;
 }
 
 .messageHeader {
@@ -219,7 +219,7 @@
 }
 
 :global(.darkMode) .inputContainer {
-    background-color: #1e293b;
+    background-color: #1e1e1e;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
