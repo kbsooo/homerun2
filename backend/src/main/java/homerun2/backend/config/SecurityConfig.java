@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/taxi/**").permitAll()
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/shuttle/**").permitAll()
+                        .requestMatchers("/api/chat/**").permitAll()
                         .requestMatchers("/bus/**").permitAll()
                         .anyRequest().authenticated());
 

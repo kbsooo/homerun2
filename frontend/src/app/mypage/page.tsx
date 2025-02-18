@@ -1,29 +1,40 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
 import styles from './page.module.css';
 import { ChatHistory, ChatMessage } from '../api/chat/route';
-import { useThemeContext } from '../contexts/ThemeContext';
+import { useThemeContext } from '../context/ThemeContext';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function MyPage() {
+  const router = useRouter();
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [messagesError, setMessagesError] = useState<string | null>(null);
 
-  const { theme, darkMode, toggleDarkMode } = useThemeContext();
+  const { theme, darkMode } = useThemeContext();
 
   useEffect(() => {
-    // 다크모드 상태 불러오기
+    const token = localStorage.getItem('token');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (!token || !userInfo) {
+      router.push('/');
+      return;
+    }
+
     const darkMode = localStorage.getItem('darkMode') === 'true';
     setIsDarkMode(darkMode);
-    // 채팅 히스토리 가져오기
     fetchChatHistories();
-  }, []);
+  }, [router]);
 
   useEffect(() => {
     if (selectedChat) {
@@ -35,110 +46,166 @@ export default function MyPage() {
     document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
   }, [theme, darkMode]);
 
-  const handleToggleDarkMode = (value: boolean) => {
-    setIsDarkMode(value);
-    localStorage.setItem('darkMode', value.toString());
-  };
-
   const fetchChatHistories = async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('로그인이 필요합니다.');
+      let token = localStorage.getItem('token');
+      const userInfo = localStorage.getItem('userInfo');
+      
+      if (!token || !userInfo) {
+        router.push('/');
+        return;
       }
 
-      console.log('Fetching chat histories...');
-      const response = await fetch('/api/chat/histories', {
+      console.log('Original token:', token);
+      console.log('UserInfo:', userInfo);
+
+      if (!token.startsWith('Bearer ')) {
+        token = `Bearer ${token}`;
+      }
+
+      console.log('Final token being sent:', token);
+
+      const response = await fetch('http://localhost:8080/api/chat/histories', {
+        method: 'GET',
         headers: {
-          'Authorization': `Bearer ${token}`,
+          'Authorization': token,
           'Content-Type': 'application/json',
           'Accept': 'application/json'
-        }
+        },
+        credentials: 'include'
       });
 
-      console.log('Response received:', response.status);
-      const text = await response.text();
-      console.log('Raw response:', text);
-
-      if (!text) {
-        throw new Error('서버에서 응답을 받지 못했습니다.');
-      }
+      console.log('Response status:', response.status);
+      const responseHeaders = Object.fromEntries(response.headers.entries());
+      console.log('Response headers:', responseHeaders);
 
       let data;
       try {
-        data = JSON.parse(text);
-      } catch (e) {
-        console.error('Failed to parse response as JSON:', e);
-        throw new Error('서버 응답을 처리하는데 실패했습니다.');
-      }
+        const text = await response.text();
+        console.log('Raw response text:', text);
+        
+        if (!text) {
+          console.log('Empty response received');
+          if (response.status === 403) {
+            throw new Error('로그인이 필요합니다.');
+          }
+          throw new Error('서버 응답이 비어있습니다.');
+        }
+        
+        try {
+          data = JSON.parse(text);
+          console.log('Parsed data:', data);
+        } catch (e) {
+          console.error('Failed to parse JSON:', e);
+          if (response.status === 403) {
+            throw new Error('로그인이 필요합니다.');
+          }
+          throw new Error('서버 응답을 처리하는데 실패했습니다.');
+        }
 
-      if (!response.ok) {
-        throw new Error(data.error || '채팅 기록을 불러오는데 실패했습니다.');
-      }
+        if (!response.ok) {
+          if (response.status === 403 && data?.error) {
+            console.log('403 error data:', data);
+            if (data.error === '로그인이 만료되었습니다.' || 
+                data.error === '유효하지 않은 인증입니다.' || 
+                data.error === '로그인이 필요합니다.') {
+              console.log('Token invalid or expired, redirecting to home');
+              localStorage.removeItem('token');
+              localStorage.removeItem('userInfo');
+              router.push('/');
+              return;
+            }
+            throw new Error(data.error);
+          }
+          throw new Error(data?.error || '채팅 기록을 불러오는데 실패했습니다.');
+        }
 
-      console.log('Chat histories:', data);
-      setChatHistories(data);
+        if (!Array.isArray(data)) {
+          throw new Error('잘못된 응답 형식입니다.');
+        }
+
+        setChatHistories(data);
+      } catch (error) {
+        console.error('Failed to fetch chat histories:', error);
+        setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      } finally {
+        setIsLoading(false);
+      }
     } catch (error) {
       console.error('Failed to fetch chat histories:', error);
       setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
-    } finally {
-      setIsLoading(false);
     }
   };
 
   const fetchChatMessages = async (chatId: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
+      setIsMessagesLoading(true);
+      setMessagesError(null);
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('로그인이 필요합니다.');
+      const userInfo = localStorage.getItem('userInfo');
+      
+      if (!token || !userInfo) {
+        router.push('/');
+        return;
       }
 
-      console.log('Fetching chat messages for room:', chatId);
-      const response = await fetch(`/api/chat/${chatId}`, {
+      const response = await fetch(`http://localhost:8080/api/chat/${chatId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
-        }
+          'Accept': 'application/json',
+          'Origin': 'http://localhost:3000'
+        },
+        credentials: 'include'
       });
-
-      console.log('Response received:', response.status);
-      const text = await response.text();
-      console.log('Raw response:', text);
-
-      if (!text) {
-        throw new Error('서버에서 응답을 받지 못했습니다.');
-      }
 
       let data;
       try {
-        data = JSON.parse(text);
+        const text = await response.text();
+        data = text ? JSON.parse(text) : null;
       } catch (e) {
-        console.error('Failed to parse response as JSON:', e);
+        console.error('Failed to parse response:', e);
         throw new Error('서버 응답을 처리하는데 실패했습니다.');
       }
 
       if (!response.ok) {
-        throw new Error(data.error || '메시지를 불러오는데 실패했습니다.');
+        if (response.status === 403) {
+          if (data?.error === '로그인이 만료되었습니다.' || data?.error === '유효하지 않은 인증입니다.') {
+            localStorage.removeItem('token');
+            localStorage.removeItem('userInfo');
+            router.push('/');
+            return;
+          }
+        }
+        throw new Error(data?.error || '메시지를 불러오는데 실패했습니다.');
       }
 
-      console.log('Chat messages:', data);
+      if (!Array.isArray(data)) {
+        throw new Error('잘못된 응답 형식입니다.');
+      }
+
       setMessages(data);
     } catch (error) {
       console.error('Failed to fetch chat messages:', error);
-      setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+      setMessagesError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
-      setIsLoading(false);
+      setIsMessagesLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (selectedChat) {
+      fetchChatMessages(selectedChat);
+    } else {
+      fetchChatHistories();
     }
   };
 
   return (
     <div className={`${styles.pageContainer} ${isDarkMode ? 'darkMode' : ''}`}>
-      <Header isDarkMode={isDarkMode} onToggleDarkMode={handleToggleDarkMode} />
+      <Header />
       <main className={styles.main}>
         <div className={styles.container}>
           <h1 className={styles.title}>나의 채팅 기록</h1>
@@ -146,7 +213,7 @@ export default function MyPage() {
           {error && (
             <div className={styles.error}>
               <p>{error}</p>
-              <button onClick={() => window.location.reload()} className={styles.retryButton}>
+              <button onClick={handleRetry} className={styles.retryButton}>
                 다시 시도
               </button>
             </div>
@@ -156,7 +223,7 @@ export default function MyPage() {
             <div className={styles.historyList}>
               {isLoading ? (
                 <div className={styles.loading}>
-                  <p>로딩 중...</p>
+                  <LoadingSpinner />
                 </div>
               ) : chatHistories.length > 0 ? (
                 chatHistories.map((history) => (
@@ -182,35 +249,44 @@ export default function MyPage() {
               )}
             </div>
 
-            {selectedChat ? (
-              <div className={styles.messageList}>
-                {isLoading ? (
-                  <div className={styles.loading}>
-                    <p>로딩 중...</p>
-                  </div>
-                ) : messages.length > 0 ? (
-                  messages.map((message) => (
-                    <div key={message.id} className={styles.messageItem}>
-                      <div className={styles.messageHeader}>
-                        <span className={styles.sender}>{message.sender}</span>
-                        <span className={styles.time}>{message.time}</span>
-                      </div>
-                      <p className={styles.messageContent}>{message.content}</p>
+            <div className={styles.messageList}>
+              {selectedChat ? (
+                <>
+                  {messagesError && (
+                    <div className={styles.error}>
+                      <p>{messagesError}</p>
+                      <button onClick={handleRetry} className={styles.retryButton}>
+                        다시 시도
+                      </button>
                     </div>
-                  ))
-                ) : (
-                  <div className={styles.emptyState}>
-                    <p>메시지가 없습니다.</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className={styles.messageList}>
+                  )}
+                  
+                  {isMessagesLoading ? (
+                    <div className={styles.loading}>
+                      <LoadingSpinner />
+                    </div>
+                  ) : messages.length > 0 ? (
+                    messages.map((message) => (
+                      <div key={message.id} className={styles.messageItem}>
+                        <div className={styles.messageHeader}>
+                          <span className={styles.sender}>{message.sender}</span>
+                          <span className={styles.time}>{message.time}</span>
+                        </div>
+                        <p className={styles.messageContent}>{message.content}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <p>메시지가 없습니다.</p>
+                    </div>
+                  )}
+                </>
+              ) : (
                 <div className={styles.emptyState}>
                   <p>채팅방을 선택해주세요.</p>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </main>

@@ -2,9 +2,11 @@ package homerun2.backend.repository;
 
 import homerun2.backend.model.TaxiGroup;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -31,4 +33,12 @@ public interface TaxiGroupRepository extends JpaRepository<TaxiGroup, Long> {
     List<TaxiGroup> findByIsActiveTrue();
 
     List<TaxiGroup> findByIsActiveFalse();
+
+        @Modifying
+        @Query("UPDATE TaxiGroup g SET g.isActive = false WHERE g.updatedAt < :cutoffTime AND g.isActive = true")
+        int deactivateGroupsOlderThan(@Param("cutoffTime") LocalDateTime cutoffTime);
+
+        @Modifying
+        @Query("DELETE FROM TaxiGroup g WHERE g.isActive = false AND g.updatedAt < :cutoffTime")
+        int deleteInactiveGroupsOlderThan(@Param("cutoffTime") LocalDateTime cutoffTime);
 }

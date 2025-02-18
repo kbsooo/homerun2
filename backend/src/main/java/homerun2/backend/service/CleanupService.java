@@ -1,5 +1,7 @@
 package homerun2.backend.service;
 
+import homerun2.backend.repository.ChatRoomRepository;
+import homerun2.backend.repository.TaxiGroupRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,6 +13,8 @@ import java.time.LocalDateTime;
 @Service
 @RequiredArgsConstructor
 public class CleanupService {
+    private final TaxiGroupRepository taxiGroupRepository;
+    private final ChatRoomRepository chatRoomRepository;
 
     // 매일 새벽 4시에 실행
     @Scheduled(cron = "0 0 4 * * *")
@@ -34,17 +38,51 @@ public class CleanupService {
         }
     }
 
-    private int deactivateOldGroups(LocalDateTime cutoffTime) {
-        // TODO: 구현 필요
-        // 1. 마지막 활동 시간이 cutoffTime보다 이전인 그룹들을 찾아서
-        // 2. is_active = false로 설정
+    @Transactional
+    public int deactivateOldGroups(LocalDateTime cutoffTime) {
+        try {
+            // 마지막 활동 시간이 cutoffTime보다 이전인 그룹들을 찾아서 비활성화
+            int count = taxiGroupRepository.deactivateGroupsOlderThan(cutoffTime);
+            log.info("Deactivated {} old groups", count);
+            return count;
+        } catch (Exception e) {
+            log.error("Error deactivating old groups: ", e);
         return 0;
     }
+    }
 
-    private int deactivateChatRooms(LocalDateTime cutoffTime) {
-        // TODO: 구현 필요
-        // 1. 비활성화된 그룹에 연결된 채팅방들을 찾아서
-        // 2. is_active = false로 설정
+    @Transactional
+    public int deactivateChatRooms(LocalDateTime cutoffTime) {
+        try {
+            // 비활성화된 그룹에 연결된 채팅방들을 찾아서 비활성화
+            int count = chatRoomRepository.deactivateChatRoomsOlderThan(cutoffTime);
+            log.info("Deactivated {} chat rooms", count);
+            return count;
+        } catch (Exception e) {
+            log.error("Error deactivating chat rooms: ", e);
         return 0;
+        }
+    }
+
+    // 일주일 이상 지난 비활성 데이터 삭제 (매주 월요일 새벽 3시)
+    @Scheduled(cron = "0 0 3 * * MON")
+    @Transactional
+    public void deleteOldData() {
+        LocalDateTime weekAgo = LocalDateTime.now().minusWeeks(1);
+
+        try {
+            log.info("Starting weekly cleanup of old inactive data...");
+
+            // 오래된 비활성 그룹 삭제
+            int deletedGroups = taxiGroupRepository.deleteInactiveGroupsOlderThan(weekAgo);
+
+            // 오래된 비활성 채팅방 삭제
+            int deletedChatRooms = chatRoomRepository.deleteInactiveChatRoomsOlderThan(weekAgo);
+
+            log.info("Weekly cleanup completed. Deleted {} groups and {} chat rooms",
+                    deletedGroups, deletedChatRooms);
+        } catch (Exception e) {
+            log.error("Error during weekly cleanup: ", e);
+        }
     }
 }

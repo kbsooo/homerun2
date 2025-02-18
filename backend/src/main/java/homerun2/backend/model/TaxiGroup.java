@@ -3,6 +3,8 @@ package homerun2.backend.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -26,7 +28,12 @@ public class TaxiGroup {
     @CollectionTable(name = "taxi_group_members", joinColumns = @JoinColumn(name = "group_id"))
     private List<String> members = new ArrayList<>();
 
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    private LocalDateTime updatedAt;
+
     private LocalDateTime expiresAt;
     private LocalDateTime deletedAt;
 
@@ -47,9 +54,11 @@ public class TaxiGroup {
         this.groupId = groupId;
         this.destination = destination;
         this.members.add(firstMember);
-        this.createdAt = LocalDateTime.now();
-        this.expiresAt = this.createdAt.plusHours(1);
-        this.deletedAt = this.createdAt.plusDays(1);
+        LocalDateTime now = LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        this.expiresAt = now.plusHours(1);
+        this.deletedAt = now.plusDays(1);
         this.status = GroupStatus.WAITING;
         this.isActive = true;
     }
@@ -73,14 +82,22 @@ public class TaxiGroup {
     public void addMember(String userId) {
         if (!members.contains(userId)) {
             members.add(userId);
+            this.updatedAt = LocalDateTime.now();
         }
     }
 
     public void removeMember(String userId) {
-        members.remove(userId);
+        if (members.remove(userId)) {
+            this.updatedAt = LocalDateTime.now();
+        }
     }
 
     public int getMemberCount() {
         return members.size();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 }
