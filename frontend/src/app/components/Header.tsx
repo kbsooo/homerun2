@@ -102,8 +102,7 @@ export default function Header() {
     setIsDropdownOpen(!isDropdownOpen);
   };
 
-  const handleLogoClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // If we're in a chat room
+  const handleLogoClick = () => {
     if (pathname.startsWith('/chat/')) {
       const chatId = pathname.split('/').pop();
       if (chatId) {
@@ -124,7 +123,21 @@ export default function Header() {
         <div className={styles.menuContainer}>
           <ul className={styles.menu}>
             <li className={styles.menuListItem}>
-              <Link href='/taxi' className={styles.menuItem}>택시 모집</Link>
+              <Link 
+                href='/taxi' 
+                className={styles.menuItem}
+                onClick={() => {
+                  if (pathname.startsWith('/chat/')) {
+                    const chatId = pathname.split('/').pop();
+                    if (chatId) {
+                      setMinimizedChatId(chatId);
+                      setIsMinimized(true);
+                    }
+                  }
+                }}
+              >
+                택시 모집
+              </Link>
             </li>
             <li className={styles.menuListItem}>
               {userInfo ? (
@@ -133,7 +146,20 @@ export default function Header() {
                     {userInfo.nickname}님
                   </button>
                   <div className={`${styles.dropdownContent} ${isDropdownOpen ? styles.show : ''}`}>
-                    <Link href='/mypage' className={styles.dropdownItem}>
+                    <Link 
+                      href='/mypage' 
+                      className={styles.dropdownItem}
+                      onClick={() => {
+                        if (pathname.startsWith('/chat/')) {
+                          const chatId = pathname.split('/').pop();
+                          if (chatId) {
+                            setMinimizedChatId(chatId);
+                            setIsMinimized(true);
+                          }
+                        }
+                        setIsDropdownOpen(false);
+                      }}
+                    >
                       마이페이지
                     </Link>
                     <button onClick={handleLogout} className={styles.dropdownItem}>

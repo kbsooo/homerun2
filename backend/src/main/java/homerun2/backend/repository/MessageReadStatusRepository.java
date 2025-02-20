@@ -18,4 +18,10 @@ public interface MessageReadStatusRepository extends JpaRepository<MessageReadSt
             "AND mrs.message.chatRoom.id = :chatRoomId " +
             "AND mrs.isRead = false")
     List<Long> findUnreadMessageIds(@Param("userId") Long userId, @Param("chatRoomId") Long chatRoomId);
+
+    @Query("SELECT COUNT(mrs) FROM MessageReadStatus mrs " +
+            "WHERE mrs.userId = :userId " +
+            "AND mrs.message.chatRoom.id = :chatRoomId " +
+            "AND mrs.isRead = false")
+    int countUnreadMessages(@Param("userId") Long userId, @Param("chatRoomId") Long chatRoomId);
 }

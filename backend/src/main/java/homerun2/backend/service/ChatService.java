@@ -10,6 +10,7 @@ import homerun2.backend.repository.MessageReadStatusRepository;
 import homerun2.backend.repository.ChatRoomMemberRepository;
 import homerun2.backend.dto.ChatHistoryResponse;
 import homerun2.backend.dto.ChatMessageResponse;
+import homerun2.backend.dto.MinimizedChatRoomDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -24,6 +25,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentSkipListSet;
+import lombok.Data;
+import lombok.AllArgsConstructor;
 
 @Slf4j
 @Service
@@ -37,6 +43,8 @@ public class ChatService {
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
     private final Map<Long, UserStatus> userStatusMap = new ConcurrentHashMap<>();
+    private final Map<Long, Set<MinimizedChatRoom>> userMinimizedChats = new ConcurrentHashMap<>();
+    private final Map<Long, Long> userActiveChatRooms = new ConcurrentHashMap<>();
 
     @Transactional(readOnly = true)
     public List<ChatHistoryResponse> getChatHistories(Long userId) {
@@ -310,6 +318,73 @@ public class ChatService {
         updateUserStatus(userId, "OFFLINE");
     }
 
+    @Transactional
+    public void minimizeChatRoom(Long userId, Long chatRoomId) {
+        ChatRoom chatRoom = chatRoomRepository.findById(chatRoomId)
+                .orElseThrow(() -> new IllegalArgumentException("Chat room not found"));
+
+        Set<MinimizedChatRoom> minimizedChats = userMinimizedChats.computeIfAbsent(userId,
+                k -> new ConcurrentSkipListSet<>((a, b) -> b.getMinimizedAt().compareTo(a.getMinimizedAt())));
+        minimizedChats.add(new MinimizedChatRoom(chatRoomId, chatRoom.getLastMessage(), LocalDateTime.now()));
+
+        // Clear active chat room when minimizing
+        clearActiveChatRoom(userId);
+
+        // Notify about minimization
+        notifyRoomParticipants(chatRoomId, "CHAT_MINIMIZED", Map.of(
+                "userId", userId,
+                "minimized", true));
+    }
+
+    @Transactional
+    public void maximizeChatRoom(Long userId, Long chatRoomId) {
+        Set<MinimizedChatRoom> minimizedChats = userMinimizedChats.get(userId);
+        if (minimizedChats != null) {
+            minimizedChats.removeIf(chat -> chat.getChatRoomId().equals(chatRoomId));
+        }
+
+        // Set as active chat room when maximizing
+        setActiveChatRoom(userId, chatRoomId);
+
+        // Notify about maximization
+        notifyRoomParticipants(chatRoomId, "CHAT_MAXIMIZED", Map.of(
+                "userId", userId,
+                "minimized", false));
+    }
+
+    @Transactional(readOnly = true)
+    public List<MinimizedChatRoomDTO> getMinimizedChatRooms(Long userId) {
+        Set<MinimizedChatRoom> minimizedChats = userMinimizedChats.getOrDefault(userId, Collections.emptySet());
+        return minimizedChats.stream()
+                .map(chat -> {
+                    ChatRoom chatRoom = chatRoomRepository.findById(chat.getChatRoomId())
+                            .orElse(null);
+                    if (chatRoom == null)
+                        return null;
+
+                    return MinimizedChatRoomDTO.builder()
+                            .chatRoomId(chat.getChatRoomId())
+                            .lastMessage(chatRoom.getLastMessage())
+                            .unreadCount(getUnreadMessageCount(userId, chat.getChatRoomId()))
+                            .minimizedAt(chat.getMinimizedAt())
+                            .build();
+                })
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+    }
+
+    private int getUnreadMessageCount(Long userId, Long chatRoomId) {
+        return messageReadStatusRepository.countUnreadMessages(userId, chatRoomId);
+    }
+
+    @Data
+    @AllArgsConstructor
+    private static class MinimizedChatRoom {
+        private Long chatRoomId;
+        private String lastMessage;
+        private LocalDateTime minimizedAt;
+    }
+
     private static class UserStatus {
         private String status = "OFFLINE";
         private LocalDateTime lastActive = LocalDateTime.now();
@@ -329,5 +404,20 @@ public class ChatService {
         public void setLastActive(LocalDateTime lastActive) {
             this.lastActive = lastActive;
         }
+    }
+
+    @Transactional
+    public void setActiveChatRoom(Long userId, Long chatRoomId) {
+        userActiveChatRooms.put(userId, chatRoomId);
+    }
+
+    @Transactional
+    public void clearActiveChatRoom(Long userId) {
+        userActiveChatRooms.remove(userId);
+    }
+
+    @Transactional(readOnly = true)
+    public Long getActiveChatRoomId(Long userId) {
+        return userActiveChatRooms.get(userId);
     }
 }
