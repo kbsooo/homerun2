@@ -30,7 +30,32 @@ interface TransportCard {
   title: string;
   subtitle?: string;
   additionalInfo?: string;
+  nextBusTime?: string;
 }
+
+const BusIcon = ({ busNumber, className }: { busNumber: string, className?: string }) => {
+  const getBusColor = (busNumber: string) => {
+    if (['5005', '5600', '5003A', '5003B'].includes(busNumber)) {
+      return '#EE2737';
+    }
+    if (busNumber === '820') {
+      return '#33CC99';
+    }
+    return 'currentColor'; // 테마 색상 사용
+  };
+
+  return (
+    <svg 
+      className={className} 
+      width="24" 
+      height="24" 
+      viewBox="0 0 24 24" 
+      fill={getBusColor(busNumber)}
+    >
+      <path d="M4 16c0 .88.39 1.67 1 2.22V20c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h8v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1.78c.61-.55 1-1.34 1-2.22V6c0-3.5-3.58-4-8-4s-8 .5-8 4v10zm3.5 1c-.83 0-1.5-.67-1.5-1.5S6.67 14 7.5 14s1.5.67 1.5 1.5S8.33 17 7.5 17zm9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm1.5-6H6V6h12v5z"/>
+    </svg>
+  );
+};
 
 export default function Main() {
   const [busData, setBusData] = useState<BusInfo[]>([]);
@@ -41,6 +66,7 @@ export default function Main() {
   });
   const [error, setError] = useState<string | null>(null);
   const { theme, darkMode, direction, setDirection } = useThemeContext();
+  const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,13 +182,18 @@ export default function Main() {
     const cards: TransportCard[] = [];
 
     // Add bus data
-    data && Array.isArray(data) && data.forEach(bus => {
+    data && Array.isArray(data) && data.forEach((bus, index, array) => {
+      const nextBus = array[index + 1]?.버스번호 === bus.버스번호 
+        ? `다음 ${bus.버스번호}번 버스는 ${array[index + 1].도착시간}분 후 도착`
+        : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
+
       cards.push({
         type: 'bus',
         time: parseInt(bus.도착시간),
         title: bus.버스번호,
         subtitle: `${bus.도착시간}분`,
-        additionalInfo: bus.남은좌석수
+        additionalInfo: bus.남은좌석수,
+        nextBusTime: nextBus
       });
     });
 
@@ -173,7 +204,8 @@ export default function Main() {
           type: 'shuttle',
           time: shuttleData.routes.giheung.time,
           title: '기흥역 셔틀버스',
-          subtitle: formatTime(shuttleData.routes.giheung.time)
+          subtitle: formatTime(shuttleData.routes.giheung.time),
+          nextBusTime: '다음 셔틀버스 시간표 확인 중...'
         });
       }
 
@@ -189,7 +221,8 @@ export default function Main() {
           time: time,
           title: title,
           subtitle: formatTime(time),
-          additionalInfo: additionalInfo
+          additionalInfo: additionalInfo,
+          nextBusTime: '다음 셔틀버스 시간표 확인 중...'
         });
       }
     }
@@ -204,6 +237,13 @@ export default function Main() {
       case 2: return '🥉';
       default: return '';
     }
+  };
+
+  const handleCardFlip = (index: number) => {
+    setFlippedCards(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
   };
 
   return (
@@ -247,19 +287,37 @@ export default function Main() {
         {!error && !shuttleData?.message && (
           <>
             {convertToTransportCard(busData).map((transport, index) => (
-              <div key={index} className={styles.busCard}>
-                <div className={styles.busNumber}>
-                  {index < 3 && <span className={styles.medal}>{getMedalEmoji(index)}</span>}
-                  {transport.title}
-                </div>
-                <div className={styles.busInfo}>
-                  <div className={styles.arrivalTime}>
-                    <span>출발까지</span>
-                    <strong>{transport.subtitle}</strong>
+              <div 
+                key={index} 
+                className={`${styles.busCard} ${flippedCards[index] ? styles.flipped : ''}`}
+                onClick={() => handleCardFlip(index)}
+              >
+                <div className={styles.cardInner}>
+                  <div className={styles.cardFront}>
+                    <div className={styles.busNumber}>
+                      {index < 3 && <span className={styles.medal}>{getMedalEmoji(index)}</span>}
+                      {transport.type === 'bus' ? (
+                        <BusIcon busNumber={transport.title} className={styles.busIcon} />
+                      ) : (
+                        <BusIcon busNumber="" className={styles.busIcon} />
+                      )}
+                      {transport.title}
+                    </div>
+                    <div className={styles.busInfo}>
+                      <div className={styles.arrivalTime}>
+                        <span>출발까지</span>
+                        <strong>{transport.subtitle}</strong>
+                      </div>
+                      {transport.additionalInfo && (
+                        <div className={styles.seats}>{transport.additionalInfo}</div>
+                      )}
+                    </div>
                   </div>
-                  {transport.additionalInfo && (
-                    <div className={styles.seats}>{transport.additionalInfo}</div>
-                  )}
+                  <div className={styles.cardBack}>
+                    <div className={styles.nextBusInfo}>
+                      {transport.nextBusTime}
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}
