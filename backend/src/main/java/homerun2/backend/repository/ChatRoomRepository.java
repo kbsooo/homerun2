@@ -13,9 +13,9 @@ import java.util.List;
 @Repository
 public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Query("SELECT cr FROM ChatRoom cr " +
-           "JOIN ChatRoomMember crm ON cr.id = crm.chatRoom.id " +
-           "WHERE crm.userId = :userId " +
-           "ORDER BY cr.updatedAt DESC")
+            "JOIN ChatRoomMember crm ON cr.id = crm.chatRoom.id " +
+            "WHERE crm.userId = :userId " +
+            "ORDER BY cr.updatedAt DESC")
     List<ChatRoom> findAllByUserId(@Param("userId") Long userId);
 
     @Modifying
@@ -25,4 +25,13 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
     @Modifying
     @Query("DELETE FROM ChatRoom c WHERE c.isActive = false AND c.updatedAt < :cutoffTime")
     int deleteInactiveChatRoomsOlderThan(@Param("cutoffTime") LocalDateTime cutoffTime);
-} 
+
+    List<ChatRoom> findByIsActiveFalseAndUpdatedAtBefore(LocalDateTime cutoffTime);
+
+    @Query("SELECT DISTINCT cr FROM ChatRoom cr " +
+            "JOIN ChatRoomMember crm ON cr.id = crm.chatRoom.id " +
+            "WHERE crm.userId = :userId " +
+            "AND cr.isActive = true " +
+            "AND crm.leftAt IS NULL")
+    List<ChatRoom> findActiveRoomsByUserId(@Param("userId") Long userId);
+}

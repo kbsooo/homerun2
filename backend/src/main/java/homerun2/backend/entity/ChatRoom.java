@@ -24,6 +24,9 @@ public class ChatRoom {
     @Column(name = "group_id")
     private Long groupId;
 
+    @Column(name = "creator_id")
+    private Long creatorId;
+
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

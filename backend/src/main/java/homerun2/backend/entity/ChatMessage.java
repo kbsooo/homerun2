@@ -32,6 +32,9 @@ public class ChatMessage {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
+    @Column(name = "is_system_message")
+    private boolean isSystemMessage;
+
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
