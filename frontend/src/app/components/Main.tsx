@@ -24,6 +24,14 @@ interface ShuttleInfo {
   };
 }
 
+interface TransportCard {
+  type: 'bus' | 'shuttle';
+  time: number;
+  title: string;
+  subtitle?: string;
+  additionalInfo?: string;
+}
+
 export default function Main() {
   const [busData, setBusData] = useState<BusInfo[]>([]);
   const [shuttleData, setShuttleData] = useState<ShuttleInfo | null>(null);
@@ -144,6 +152,60 @@ export default function Main() {
     return `${hours}시간 ${remainingMinutes}분`;
   };
 
+  const convertToTransportCard = (data: BusInfo[] | ShuttleInfo | null): TransportCard[] => {
+    const cards: TransportCard[] = [];
+
+    // Add bus data
+    data && Array.isArray(data) && data.forEach(bus => {
+      cards.push({
+        type: 'bus',
+        time: parseInt(bus.도착시간),
+        title: bus.버스번호,
+        subtitle: `${bus.도착시간}분`,
+        additionalInfo: bus.남은좌석수
+      });
+    });
+
+    // Add shuttle data
+    if (shuttleData?.routes) {
+      if (shuttleData.routes.giheung) {
+        cards.push({
+          type: 'shuttle',
+          time: shuttleData.routes.giheung.time,
+          title: '기흥역 셔틀버스',
+          subtitle: formatTime(shuttleData.routes.giheung.time)
+        });
+      }
+
+      if (shuttleData.routes.everline) {
+        const title = direction === 'fromMJUtoGH' ? '명지대역 셔틀버스 + 에버라인' : '에버라인 + 명지대역 셔틀버스';
+        const time = direction === 'fromMJUtoGH' ? shuttleData.routes.everline.connection : shuttleData.routes.everline.time;
+        const additionalInfo = direction === 'fromMJUtoGH' 
+          ? `에버라인 ${formatTime(shuttleData.routes.everline.time)}`
+          : `명지대역 셔틀 ${formatTime(shuttleData.routes.everline.connection)}`;
+
+        cards.push({
+          type: 'shuttle',
+          time: time,
+          title: title,
+          subtitle: formatTime(time),
+          additionalInfo: additionalInfo
+        });
+      }
+    }
+
+    return cards.sort((a, b) => a.time - b.time);
+  };
+
+  const getMedalEmoji = (index: number) => {
+    switch(index) {
+      case 0: return '🥇';
+      case 1: return '🥈';
+      case 2: return '🥉';
+      default: return '';
+    }
+  };
+
   return (
     <main className={`
       ${styles.container} 
@@ -181,68 +243,28 @@ export default function Main() {
       )}
 
       <div className={styles.busContainer}>
-        {/* 셔틀 정보를 버스 카드 형식으로 표시 */}
-        {!shuttleData?.message && shuttleData?.routes && (
+        {/* 정렬된 교통수단 카드 표시 */}
+        {!error && !shuttleData?.message && (
           <>
-            {/* 기흥역 셔틀 */}
-            {shuttleData.routes.giheung && (
-              <div className={styles.busCard}>
-                <div className={styles.busNumber}>기흥역 셔틀버스</div>
+            {convertToTransportCard(busData).map((transport, index) => (
+              <div key={index} className={styles.busCard}>
+                <div className={styles.busNumber}>
+                  {index < 3 && <span className={styles.medal}>{getMedalEmoji(index)}</span>}
+                  {transport.title}
+                </div>
                 <div className={styles.busInfo}>
                   <div className={styles.arrivalTime}>
                     <span>출발까지</span>
-                    <strong>{formatTime(shuttleData.routes.giheung.time)}</strong>
+                    <strong>{transport.subtitle}</strong>
                   </div>
+                  {transport.additionalInfo && (
+                    <div className={styles.seats}>{transport.additionalInfo}</div>
+                  )}
                 </div>
               </div>
-            )}
-            
-            {/* 에버라인 + 명지대역 셔틀 또는 명지대역 셔틀 + 에버라인 */}
-            {shuttleData.routes.everline && (
-              <div className={styles.busCard}>
-                <div className={styles.busNumber}>
-                  {direction === 'fromMJUtoGH' ? '명지대역 셔틀버스 + 에버라인' : '에버라인 + 명지대역 셔틀버스'}
-                </div>
-                <div className={styles.busInfo}>
-                  <div className={styles.arrivalTime}>
-                    {direction === 'fromMJUtoGH' ? (
-                      <>
-                        <span>명지대역 셔틀 출발까지</span>
-                        <strong>{formatTime(shuttleData.routes.everline.connection)}</strong>
-                      </>
-                    ) : (
-                      <>
-                        <span>에버라인 출발까지</span>
-                        <strong>{formatTime(shuttleData.routes.everline.time)}</strong>
-                      </>
-                    )}
-                  </div>
-                  <div className={styles.seats}>
-                    {direction === 'fromMJUtoGH' ? (
-                      <>에버라인 {formatTime(shuttleData.routes.everline.time)}</>
-                    ) : (
-                      <>명지대역 셔틀 {formatTime(shuttleData.routes.everline.connection)}</>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
+            ))}
           </>
         )}
-
-        {/* 일반 버스 정보 표시 */}
-        {busData.length > 0 && busData.map((bus, index) => (
-          <div key={index} className={styles.busCard}>
-            <div className={styles.busNumber}>{bus.버스번호}</div>
-            <div className={styles.busInfo}>
-              <div className={styles.arrivalTime}>
-                <span>출발까지</span>
-                <strong>{bus.도착시간}분</strong>
-              </div>
-              <div className={styles.seats}>{bus.남은좌석수}</div>
-            </div>
-          </div>
-        ))}
 
         {/* 데이터가 없을 때 메시지 표시 */}
         {!error && !shuttleData?.message && busData.length === 0 && !shuttleData?.routes && (
