@@ -194,10 +194,12 @@
   width: 100%;
   height: 100%;
   backface-visibility: hidden;
+  -webkit-backface-visibility: hidden; /* Safari 지원 */
   background: white;
   border-radius: 15px;
   padding: 1.5rem;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transform-style: preserve-3d;
 }
 
 .cardBack {
@@ -220,6 +222,21 @@
 .darkMode .cardBack {
   background-color: #1e1e1e;
   color: #e5e7eb;
+  border-radius: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+}
+
+.darkMode .busCard {
+  background-color: transparent;
+}
+
+.darkMode .cardInner {
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d; /* Safari 지원 */
+}
+
+.darkMode .nextBusInfo {
+  color: var(--theme-color);
 }
 
 .busIcon {
