@@ -14,7 +14,6 @@ export default function MyPage() {
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -31,8 +30,6 @@ export default function MyPage() {
       return;
     }
 
-    const darkMode = localStorage.getItem('darkMode') === 'true';
-    setIsDarkMode(darkMode);
     fetchChatHistories();
   }, [router]);
 
@@ -204,85 +201,85 @@ export default function MyPage() {
   };
 
   return (
-    <div className={`${styles.pageContainer} ${isDarkMode ? 'darkMode' : ''}`}>
+    <div className={`${styles.pageContainer} ${darkMode ? styles.darkMode : ''}`}>
       <Header />
-      <main className={styles.main}>
-        <div className={styles.container}>
-          <h1 className={styles.title}>나의 채팅 기록</h1>
+      <main className={`${styles.main} ${darkMode ? styles.darkMode : ''}`}>
+        <div className={`${styles.container} ${darkMode ? styles.darkMode : ''}`}>
+          <h1 className={`${styles.title} ${darkMode ? styles.darkMode : ''}`}>나의 채팅 기록</h1>
           
           {error && (
-            <div className={styles.error}>
+            <div className={`${styles.error} ${darkMode ? styles.darkMode : ''}`}>
               <p>{error}</p>
-              <button onClick={handleRetry} className={styles.retryButton}>
+              <button onClick={handleRetry} className={`${styles.retryButton} ${darkMode ? styles.darkMode : ''}`}>
                 다시 시도
               </button>
             </div>
           )}
           
-          <div className={styles.content}>
-            <div className={styles.historyList}>
+          <div className={`${styles.content} ${darkMode ? styles.darkMode : ''}`}>
+            <div className={`${styles.historyList} ${darkMode ? styles.darkMode : ''}`}>
               {isLoading ? (
-                <div className={styles.loading}>
+                <div className={`${styles.loading} ${darkMode ? styles.darkMode : ''}`}>
                   <LoadingSpinner />
                 </div>
               ) : chatHistories.length > 0 ? (
                 chatHistories.map((history) => (
                   <div
                     key={history.id}
-                    className={`${styles.historyItem} ${selectedChat === history.id ? styles.selected : ''}`}
+                    className={`${styles.historyItem} ${selectedChat === history.id ? styles.selected : ''} ${darkMode ? styles.darkMode : ''}`}
                     onClick={() => setSelectedChat(history.id)}
                   >
                     <div className={styles.historyHeader}>
-                      <span className={styles.date}>{history.date}</span>
-                      <span className={styles.roomId}>#{history.roomId}</span>
+                      <span className={`${styles.date} ${darkMode ? styles.darkMode : ''}`}>{history.date}</span>
+                      <span className={`${styles.roomId} ${darkMode ? styles.darkMode : ''}`}>#{history.roomId}</span>
                     </div>
-                    <p className={styles.lastMessage}>{history.lastMessage}</p>
-                    <div className={styles.participants}>
+                    <p className={`${styles.lastMessage} ${darkMode ? styles.darkMode : ''}`}>{history.lastMessage}</p>
+                    <div className={`${styles.participants} ${darkMode ? styles.darkMode : ''}`}>
                       참여자 {history.participants}명
                     </div>
                   </div>
                 ))
               ) : (
-                <div className={styles.emptyState}>
+                <div className={`${styles.emptyState} ${darkMode ? styles.darkMode : ''}`}>
                   <p>아직 참여한 채팅방이 없습니다.</p>
                 </div>
               )}
             </div>
 
-            <div className={styles.messageList}>
+            <div className={`${styles.messageList} ${darkMode ? styles.darkMode : ''}`}>
               {selectedChat ? (
                 <>
                   {messagesError && (
-                    <div className={styles.error}>
+                    <div className={`${styles.error} ${darkMode ? styles.darkMode : ''}`}>
                       <p>{messagesError}</p>
-                      <button onClick={handleRetry} className={styles.retryButton}>
+                      <button onClick={handleRetry} className={`${styles.retryButton} ${darkMode ? styles.darkMode : ''}`}>
                         다시 시도
                       </button>
                     </div>
                   )}
                   
                   {isMessagesLoading ? (
-                    <div className={styles.loading}>
+                    <div className={`${styles.loading} ${darkMode ? styles.darkMode : ''}`}>
                       <LoadingSpinner />
                     </div>
                   ) : messages.length > 0 ? (
                     messages.map((message) => (
-                      <div key={message.id} className={styles.messageItem}>
+                      <div key={message.id} className={`${styles.messageItem} ${darkMode ? styles.darkMode : ''}`}>
                         <div className={styles.messageHeader}>
-                          <span className={styles.sender}>{message.sender}</span>
-                          <span className={styles.time}>{message.time}</span>
+                          <span className={`${styles.sender} ${darkMode ? styles.darkMode : ''}`}>{message.sender}</span>
+                          <span className={`${styles.time} ${darkMode ? styles.darkMode : ''}`}>{message.time}</span>
                         </div>
-                        <p className={styles.messageContent}>{message.content}</p>
+                        <p className={`${styles.messageContent} ${darkMode ? styles.darkMode : ''}`}>{message.content}</p>
                       </div>
                     ))
                   ) : (
-                    <div className={styles.emptyState}>
+                    <div className={`${styles.emptyState} ${darkMode ? styles.darkMode : ''}`}>
                       <p>메시지가 없습니다.</p>
                     </div>
                   )}
                 </>
               ) : (
-                <div className={styles.emptyState}>
+                <div className={`${styles.emptyState} ${darkMode ? styles.darkMode : ''}`}>
                   <p>채팅방을 선택해주세요.</p>
                 </div>
               )}
