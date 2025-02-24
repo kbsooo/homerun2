@@ -7,6 +7,8 @@ interface BusInfo {
   도착시간: string;
   버스번호: string;
   남은좌석수: string;
+  도착시간2?: string;
+  남은좌석수2?: string;
 }
 
 interface ShuttleInfo {
@@ -73,26 +75,28 @@ export default function Main() {
       try {
         // 현재 시간 체크
         const now = new Date();
-        const day = now.getDay(); // 0: 일요일, 6: 토요일
+        const day = now.getDay();
         const hour = now.getHours();
         const isWeekend = day === 0 || day === 6;
-        const isOperatingHours = hour >= 6 && hour < 23; // 운행 시간: 06:00 ~ 23:00
+        const isOperatingHours = hour >= 6 && hour < 23;
 
-        // 운행 시간 외 처리
         if (!isOperatingHours) {
+          console.log('Outside operating hours');
           setBusData([]);
           setShuttleData({ message: '버스 운행 시간이 아닙니다. (운행 시간: 06:00 ~ 23:00)' });
           setError(null);
           return;
         }
 
-        // 주말 처리
         if (isWeekend) {
+          console.log('Weekend - no shuttle service');
           setShuttleData({ message: '주말에는 셔틀버스가 운행하지 않습니다.' });
         }
 
         // 버스 데이터 가져오기
         const busEndpoint = direction === 'fromMJUtoGH' ? 'http://localhost:8080/bus/fromMJUtoGH' : 'http://localhost:8080/bus/fromGHtoMJU';
+        console.log('Fetching bus data from:', busEndpoint);
+        
         try {
           const busResponse = await fetch(busEndpoint, {
             method: 'GET',
@@ -102,10 +106,14 @@ export default function Main() {
             }
           });
           const busData = await busResponse.json();
+          console.log('Received bus data:', busData);
+          
           if (Array.isArray(busData)) {
+            console.log('Setting bus data, length:', busData.length);
             setBusData(busData);
             setError(null);
           } else {
+            console.error('Invalid bus data format:', busData);
             setBusData([]);
             setError('버스 정보를 불러올 수 없습니다.');
           }
@@ -178,22 +186,31 @@ export default function Main() {
     return `${hours}시간 ${remainingMinutes}분`;
   };
 
+  const handleCardFlip = (index: number) => {
+    setFlippedCards(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }));
+  };
+
   const convertToTransportCard = (data: BusInfo[] | ShuttleInfo | null): TransportCard[] => {
     const cards: TransportCard[] = [];
 
     // Add bus data
-    data && Array.isArray(data) && data.forEach((bus, index, array) => {
-      const nextBus = array[index + 1]?.버스번호 === bus.버스번호 
-        ? `다음 ${bus.버스번호}번 버스는 ${array[index + 1].도착시간}분 후 도착`
+    data && Array.isArray(data) && data.forEach((bus, index) => {
+      console.log(`Processing bus ${index}:`, bus);
+      const nextBusTime = bus.도착시간2 
+        ? `다음 ${bus.버스번호}번 버스는 ${bus.도착시간2}분 후 도착${bus.남은좌석수2 ? ` (${bus.남은좌석수2})` : ''}`
         : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
-
+      console.log(`Next bus time for ${bus.버스번호}:`, nextBusTime);
+      
       cards.push({
         type: 'bus',
         time: parseInt(bus.도착시간),
         title: bus.버스번호,
         subtitle: `${bus.도착시간}분`,
         additionalInfo: bus.남은좌석수,
-        nextBusTime: nextBus
+        nextBusTime: nextBusTime
       });
     });
 
@@ -239,19 +256,8 @@ export default function Main() {
     }
   };
 
-  const handleCardFlip = (index: number) => {
-    setFlippedCards(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }));
-  };
-
   return (
-    <main className={`
-      ${styles.container} 
-      ${direction === 'fromMJUtoGH' ? styles.yellowTheme : styles.blueTheme}
-      ${darkMode ? styles.darkMode : ''}
-    `}>
+    <main className={`${styles.container} ${direction === 'fromMJUtoGH' ? styles.yellowTheme : styles.blueTheme} ${darkMode ? styles.darkMode : ''}`}>
       <div className={styles.timeDisplay}>
         <span className={styles.period}>{currentTime.period}</span>
         <span className={styles.time}>{currentTime.time}</span>
@@ -259,7 +265,7 @@ export default function Main() {
       
       <div className={styles.toggleWrapper}>
         <button 
-          className={`${styles.toggleButton} ${direction === 'fromMJUtoGH' ? styles.active : ''}`} 
+          className={`${styles.toggleButton} ${direction === 'fromMJUtoGH' ? styles.active : ''}`}
           onClick={() => setDirection('fromMJUtoGH')}
         >
           기흥역
