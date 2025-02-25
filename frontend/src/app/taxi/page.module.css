@@ -118,6 +118,129 @@
     color: #e5e7eb;
 }
 
+.locationMessage {
+    font-size: 1rem;
+    color: #4b5563;
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+:global(.darkMode) .locationMessage {
+    background-color: #1e1e1e;
+    color: #9ca3af;
+}
+
+.locationError {
+    font-size: 1rem;
+    color: #ef4444;
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+:global(.darkMode) .locationError {
+    background-color: #1e1e1e;
+    color: #f87171;
+}
+
+.locationError p {
+    margin: 0;
+}
+
+.locationConfirm {
+    font-size: 1rem;
+    color: #059669;
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+:global(.darkMode) .locationConfirm {
+    background-color: #1e1e1e;
+    color: #10b981;
+}
+
+.locationConfirm p {
+    margin: 0;
+    font-weight: 600;
+}
+
+.locationSubtext {
+    color: #6b7280;
+    font-size: 0.9rem;
+    font-weight: normal !important;
+}
+
+:global(.darkMode) .locationSubtext {
+    color: #9ca3af;
+}
+
+.locationButtonGroup {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.checkLocationButton {
+    padding: 0.5rem 1rem;
+    background: var(--theme-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.checkLocationButton:hover {
+    background: var(--theme-hover);
+}
+
+.manualLocationButton {
+    padding: 0.5rem 1rem;
+    background: #6b7280;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.manualLocationButton:hover {
+    background: #4b5563;
+}
+
 .joinButton {
     padding: 1rem 2rem;
     background: var(--theme-color);
@@ -132,13 +255,27 @@
     max-width: 400px;
 }
 
-.joinButton:hover {
+.joinButton.disabled {
+    background-color: #9ca3af;
+    color: #e5e7eb;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.joinButton.disabled:hover {
+    background-color: #9ca3af;
+    transform: none;
+    box-shadow: none;
+}
+
+.joinButton:not(.disabled):hover {
     background: var(--theme-hover);
     transform: translateY(-2px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.joinButton:active {
+.joinButton:not(.disabled):active {
     background: var(--theme-active);
     transform: translateY(0);
 }
@@ -160,5 +297,22 @@
     .infoText {
         font-size: 1.1rem;
         padding: 1.25rem;
+    }
+
+    .locationMessage,
+    .locationError,
+    .locationConfirm {
+        font-size: 0.9rem;
+        padding: 0.75rem;
+    }
+
+    .locationButtonGroup {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .checkLocationButton,
+    .manualLocationButton {
+        width: 100%;
     }
 }

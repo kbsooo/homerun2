@@ -15,11 +15,101 @@ export default function TaxiPage() {
     const [stompClient, setStompClient] = useState<Client | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState('모집중...');
+    const [isInValidLocation, setIsInValidLocation] = useState(false);
+    const [isCheckingLocation, setIsCheckingLocation] = useState(true);
+    const [locationError, setLocationError] = useState<string | null>(null);
+    const [manualLocationMode, setManualLocationMode] = useState(false);
     const router = useRouter();
     const { theme, darkMode, toggleDarkMode, direction, setDirection } = useThemeContext();
 
     // Convert taxi destination to/from app direction
     const taxiDestination = direction === 'fromMJUtoGH' ? '기흥역' : '명지대';
+
+    // Bounds configuration for different locations
+    const bounds = {
+        mju: [
+            37.224238,  // minLat
+            127.187856, // minLng
+            37.22938,   // maxLat
+            127.19028   // maxLng
+        ],
+        gh: [
+            37.274678,  // minLat
+            127.115739, // minLng
+            37.27749,   // maxLat
+            127.12048   // maxLng
+        ]
+    };
+
+    // Check if user is in valid location based on direction
+    useEffect(() => {
+        if (manualLocationMode) {
+            return; // 수동 위치 모드에서는 자동 위치 체크를 하지 않음
+        }
+        
+        setIsCheckingLocation(true);
+        setLocationError(null);
+        
+        const checkLocation = () => {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    console.log('Current location:', latitude, longitude);
+                    
+                    // Determine which bounds to check based on direction
+                    const boundsToCheck = direction === 'fromMJUtoGH' ? bounds.mju : bounds.gh;
+                    
+                    // Check if user is within bounds
+                    const isInBounds = 
+                        latitude >= boundsToCheck[0] && 
+                        longitude >= boundsToCheck[1] && 
+                        latitude <= boundsToCheck[2] && 
+                        longitude <= boundsToCheck[3];
+                    
+                    setIsInValidLocation(isInBounds);
+                    setIsCheckingLocation(false);
+                    
+                    if (!isInBounds) {
+                        if (direction === 'fromMJUtoGH') {
+                            setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
+                        } else {
+                            setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+                        }
+                    }
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                    
+                    // 에러 유형에 따른 다른 메시지 표시
+                    if (error.code === 1) {
+                        // PERMISSION_DENIED
+                        setLocationError('위치 접근 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+                    } else if (error.code === 2) {
+                        // POSITION_UNAVAILABLE
+                        setLocationError('현재 위치를 확인할 수 없습니다. GPS 신호가 약하거나 위치 서비스가 비활성화되었을 수 있습니다.');
+                    } else if (error.code === 3) {
+                        // TIMEOUT
+                        setLocationError('위치 정보를 가져오는 데 시간이 너무 오래 걸립니다.');
+                    } else {
+                        setLocationError('위치 정보를 가져올 수 없습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+                    }
+                    
+                    setIsCheckingLocation(false);
+                },
+                { 
+                    enableHighAccuracy: false, // 정확도 요구사항 완화
+                    timeout: 20000, // 타임아웃 늘림 (20초)
+                    maximumAge: 60000 // 캐시된 위치 사용 허용 시간 늘림
+                }
+            );
+        };
+        
+        checkLocation();
+        // 일정 시간마다 위치 업데이트
+        const intervalId = setInterval(checkLocation, 60000); // 1분마다 위치 체크
+        
+        return () => clearInterval(intervalId);
+    }, [direction, manualLocationMode]);
 
     useEffect(() => {
         let client: Client | null = null;
@@ -68,6 +158,16 @@ export default function TaxiPage() {
             const token = localStorage.getItem('token');
             if (!token) {
                 alert('로그인이 필요합니다.');
+                return;
+            }
+
+            // 위치 확인 스킵 (수동 모드이거나 유효한 위치인 경우)
+            if (!manualLocationMode && !isInValidLocation) {
+                if (direction === 'fromMJUtoGH') {
+                    alert('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
+                } else {
+                    alert('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+                }
                 return;
             }
 
@@ -163,6 +263,70 @@ export default function TaxiPage() {
         setDirection(newDestination === '기흥역' ? 'fromMJUtoGH' : 'fromGHtoMJU');
     };
 
+    const checkLocationAgain = () => {
+        setIsCheckingLocation(true);
+        setManualLocationMode(false);
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const { latitude, longitude } = position.coords;
+                
+                // Determine which bounds to check based on direction
+                const boundsToCheck = direction === 'fromMJUtoGH' ? bounds.mju : bounds.gh;
+                
+                // Check if user is within bounds
+                const isInBounds = 
+                    latitude >= boundsToCheck[0] && 
+                    longitude >= boundsToCheck[1] && 
+                    latitude <= boundsToCheck[2] && 
+                    longitude <= boundsToCheck[3];
+                
+                setIsInValidLocation(isInBounds);
+                setIsCheckingLocation(false);
+                
+                if (!isInBounds) {
+                    if (direction === 'fromMJUtoGH') {
+                        setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
+                    } else {
+                        setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+                    }
+                } else {
+                    setLocationError(null);
+                }
+            },
+            (error) => {
+                console.error('Error getting location:', error);
+                
+                // 에러 유형에 따른 다른 메시지 표시
+                if (error.code === 1) {
+                    // PERMISSION_DENIED
+                    setLocationError('위치 접근 권한이 거부되었습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+                } else if (error.code === 2) {
+                    // POSITION_UNAVAILABLE
+                    setLocationError('현재 위치를 확인할 수 없습니다. GPS 신호가 약하거나 위치 서비스가 비활성화되었을 수 있습니다.');
+                } else if (error.code === 3) {
+                    // TIMEOUT
+                    setLocationError('위치 정보를 가져오는 데 시간이 너무 오래 걸립니다.');
+                } else {
+                    setLocationError('위치 정보를 가져올 수 없습니다. 브라우저 설정에서 위치 권한을 허용해주세요.');
+                }
+                
+                setIsCheckingLocation(false);
+            },
+            { 
+                enableHighAccuracy: false, // 정확도 요구사항 완화
+                timeout: 20000, // 타임아웃 늘림 (20초)
+                maximumAge: 60000 // 캐시된 위치 사용 허용 시간 늘림
+            }
+        );
+    };
+
+    const enableManualLocationMode = () => {
+        setManualLocationMode(true);
+        setIsInValidLocation(true);
+        setLocationError(null);
+        setIsCheckingLocation(false);
+    };
+
     return (
         <div>
             <Header isDarkMode={darkMode} onToggleDarkMode={toggleDarkMode} />
@@ -190,7 +354,53 @@ export default function TaxiPage() {
                             현재 {taxiDestination}으로 모집중인 사람이 {memberCount}명 있습니다.
                         </div>
 
-                        <button className={styles.joinButton} onClick={handleJoinGroup}>
+                        {manualLocationMode ? (
+                            <div className={styles.locationConfirm}>
+                                <p>수동 위치 모드 활성화됨</p>
+                                <p className={styles.locationSubtext}>
+                                    {direction === 'fromMJUtoGH' 
+                                        ? '명지대학교에 있음을 확인합니다.' 
+                                        : '기흥역 근처에 있음을 확인합니다.'}
+                                </p>
+                                <button 
+                                    className={styles.checkLocationButton} 
+                                    onClick={() => {
+                                        setManualLocationMode(false);
+                                        checkLocationAgain();
+                                    }}
+                                >
+                                    자동 위치 확인으로 전환
+                                </button>
+                            </div>
+                        ) : isCheckingLocation ? (
+                            <div className={styles.locationMessage}>
+                                위치 확인 중입니다...
+                            </div>
+                        ) : locationError ? (
+                            <div className={styles.locationError}>
+                                <p>{locationError}</p>
+                                <div className={styles.locationButtonGroup}>
+                                    <button 
+                                        className={styles.checkLocationButton} 
+                                        onClick={checkLocationAgain}
+                                    >
+                                        위치 다시 확인하기
+                                    </button>
+                                    <button 
+                                        className={styles.manualLocationButton} 
+                                        onClick={enableManualLocationMode}
+                                    >
+                                        수동으로 위치 설정하기
+                                    </button>
+                                </div>
+                            </div>
+                        ) : null}
+
+                        <button 
+                            className={`${styles.joinButton} ${(!isInValidLocation && !manualLocationMode) || isCheckingLocation ? styles.disabled : ''}`} 
+                            onClick={handleJoinGroup}
+                            disabled={(!isInValidLocation && !manualLocationMode) || isCheckingLocation}
+                        >
                             택시 그룹 모집하기
                         </button>
                     </>
