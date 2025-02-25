@@ -81,7 +81,6 @@ export default function Main() {
         const isOperatingHours = hour >= 6 && hour < 23;
 
         if (!isOperatingHours) {
-          console.log('Outside operating hours');
           setBusData([]);
           setShuttleData({ message: '버스 운행 시간이 아닙니다. (운행 시간: 06:00 ~ 23:00)' });
           setError(null);
@@ -89,13 +88,11 @@ export default function Main() {
         }
 
         if (isWeekend) {
-          console.log('Weekend - no shuttle service');
           setShuttleData({ message: '주말에는 셔틀버스가 운행하지 않습니다.' });
         }
 
         // 버스 데이터 가져오기
         const busEndpoint = direction === 'fromMJUtoGH' ? 'http://localhost:8080/bus/fromMJUtoGH' : 'http://localhost:8080/bus/fromGHtoMJU';
-        console.log('Fetching bus data from:', busEndpoint);
         
         try {
           const busResponse = await fetch(busEndpoint, {
@@ -106,19 +103,18 @@ export default function Main() {
             }
           });
           const busData = await busResponse.json();
-          console.log('Received bus data:', busData);
           
           if (Array.isArray(busData)) {
-            console.log('Setting bus data, length:', busData.length);
+            console.log(`받은 버스 데이터: ${busData.length}개`);
             setBusData(busData);
             setError(null);
           } else {
-            console.error('Invalid bus data format:', busData);
+            console.error('Invalid bus data format');
             setBusData([]);
             setError('버스 정보를 불러올 수 없습니다.');
           }
         } catch (error) {
-          console.error('버스 정보 조회 실패:', error);
+          console.error('버스 정보 조회 실패');
           setBusData([]);
           setError('버스 정보를 불러올 수 없습니다.');
         }
@@ -136,12 +132,12 @@ export default function Main() {
               setShuttleData(null);
             }
           } catch (error) {
-            console.error('셔틀 정보 조회 실패:', error);
+            console.error('셔틀 정보 조회 실패');
             setShuttleData(null);
           }
         }
       } catch (error) {
-        console.error('데이터를 불러오는데 실패했습니다:', error);
+        console.error('데이터를 불러오는데 실패했습니다');
         setBusData([]);
         setShuttleData(null);
         setError('정보를 불러오는데 실패했습니다. 잠시 후 다시 시도해주세요.');
@@ -198,11 +194,9 @@ export default function Main() {
 
     // Add bus data
     data && Array.isArray(data) && data.forEach((bus, index) => {
-      console.log(`Processing bus ${index}:`, bus);
       const nextBusTime = bus.도착시간2 
         ? `다음 ${bus.버스번호}번 버스는 ${bus.도착시간2}분 후 도착${bus.남은좌석수2 ? ` (${bus.남은좌석수2})` : ''}`
         : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
-      console.log(`Next bus time for ${bus.버스번호}:`, nextBusTime);
       
       cards.push({
         type: 'bus',
