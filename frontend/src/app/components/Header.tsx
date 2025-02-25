@@ -117,7 +117,10 @@ export default function Header() {
       <nav className={styles.nav}>
         <div className={styles.logo}>
           <Link href='/' className={styles.logoLink} onClick={handleLogoClick}>
-            HOMERUN
+            <div className={styles.logoContent}>
+              <span className={styles.logoText}>HOMERUN</span>
+              <span className={styles.betaLabel}>beta</span>
+            </div>
           </Link>
         </div>
         <div className={styles.menuContainer}>
