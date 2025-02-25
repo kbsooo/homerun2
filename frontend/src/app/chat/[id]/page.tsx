@@ -75,9 +75,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         // Fetch initial data
         const fetchData = async () => {
             try {
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
                 const [groupResponse, messagesResponse] = await Promise.all([
-                    fetch(`http://localhost:8080/api/taxi/group/${resolvedParams.id}`),
-                    fetch(`http://localhost:8080/api/taxi/chat/${resolvedParams.id}`)
+                    fetch(`${backendUrl}/api/taxi/group/${resolvedParams.id}`),
+                    fetch(`${backendUrl}/api/taxi/chat/${resolvedParams.id}`)
                 ]);
 
                 if (groupResponse.ok) {

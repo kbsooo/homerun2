@@ -5,8 +5,9 @@ export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const direction = searchParams.get('direction') || 'fromMJUtoGH';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
     
-    const response = await fetch(`http://localhost:8080/bus/${direction}`, {
+    const response = await fetch(`${backendUrl}/bus/${direction}`, {
       next: { revalidate: 30 }, // 30초마다 재검증
     });
     

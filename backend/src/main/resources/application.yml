@@ -4,11 +4,9 @@ spring:
       client:
         registration:
           kakao:
-            # client-id: ${KAKAO_CLIENT_ID}
-            client-id: 72344e72c8eb9a14b4de4c2a0d0f9b09
-            # client-secret: ${KAKAO_CLIENT_SECRET}
-            client-secret: uCPxVmFgEDTIWwxt16OKR1sjrfxBpOxe
-            redirect-uri: http://localhost:8080/api/auth/kakao/callback
+            client-id: ${KAKAO_CLIENT_ID:72344e72c8eb9a14b4de4c2a0d0f9b09}
+            client-secret: ${KAKAO_CLIENT_SECRET:uCPxVmFgEDTIWwxt16OKR1sjrfxBpOxe}
+            redirect-uri: ${BACKEND_URL:http://localhost:8080}/api/auth/kakao/callback
             authorization-grant-type: authorization_code
             client-authentication-method: client_secret_post
             client-name: Kakao
@@ -22,19 +20,19 @@ spring:
             user-info-uri: https://kapi.kakao.com/v2/user/me
             user-name-attribute: id
 
+# Frontend and Backend URLs for deployment
+frontend:
+  url: ${FRONTEND_URL:http://localhost:3000}
+backend:
+  url: ${BACKEND_URL:http://localhost:8080}
+
 bus:
-  api-key: "Y1krIHzIaGjNExwpuP1xPwK34bFoC0iNOZhXjw45sb6mlhyqVVXTsuKTK+M6b1q9FEFwljRgECK9lIsGiPO+Yw=="
+  api-key: ${BUS_API_KEY:Y1krIHzIaGjNExwpuP1xPwK34bFoC0iNOZhXjw45sb6mlhyqVVXTsuKTK+M6b1q9FEFwljRgECK9lIsGiPO+Yw==}
   station:
-    fromMJUtoGH: 228002959
-    fromGHtoMJU: 228000696
-  numbers: 5005,820,5600,5003A,5003B
-  routeMap: '{"5005": "228000175", "820": "228000012", "5600": "228000184", "5003A": "228000431", "5003B": "228000182"}'
-#  routeMap:
-#    "5005": "228000175"
-#    "820": "228000012"
-#    "5600": "228000184"
-#    "5003A": "228000431"
-#    "5003B": "228000182"
+    fromMJUtoGH: ${BUS_STATION_MJU_TO_GH:228002959}
+    fromGHtoMJU: ${BUS_STATION_GH_TO_MJU:228000696}
+  numbers: ${BUS_NUMBERS:5005,820,5600,5003A,5003B}
+  routeMap: '${BUS_ROUTE_MAP:{"5005": "228000175", "820": "228000012", "5600": "228000184", "5003A": "228000431", "5003B": "228000182"}}'
 
 bounds:
   mju:
@@ -49,5 +47,5 @@ bounds:
     - 127.12048
 
 jwt:
-  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
-  expiration: 86400000 # 24 hours in milliseconds
+  secret: ${JWT_SECRET:404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970}
+  expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds

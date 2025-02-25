@@ -24,14 +24,16 @@ export async function GET(request: Request) {
 
   try {
     console.log('Fetching chat histories with token:', token);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'http://localhost:3000';
     
-    const response = await fetch('http://localhost:8080/api/chat/histories', {
+    const response = await fetch(`${backendUrl}/api/chat/histories`, {
       method: 'GET',
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Origin': 'http://localhost:3000'
+        'Origin': frontendUrl
       },
       cache: 'no-store',
       next: { revalidate: 0 }

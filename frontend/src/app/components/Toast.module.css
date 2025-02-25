@@ -1,0 +1,103 @@
+.toastsWrapper {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 350px;
+}
+
+.toastContainer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  color: #ffffff;
+  font-size: 0.9rem;
+  min-width: 250px;
+  max-width: 100%;
+  animation: slideIn 0.3s ease;
+  opacity: 1;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.toastContainer.hidden {
+  opacity: 0;
+  transform: translateX(100%);
+}
+
+.toastContainer.visible {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.info {
+  background-color: #3b82f6;
+}
+
+.success {
+  background-color: #10b981;
+}
+
+.warning {
+  background-color: #f59e0b;
+}
+
+.error {
+  background-color: #ef4444;
+}
+
+.message {
+  flex: 1;
+  margin-right: 10px;
+  word-break: break-word;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  color: #ffffff;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.closeButton:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 480px) {
+  .toastsWrapper {
+    right: 10px;
+    left: 10px;
+    max-width: calc(100% - 20px);
+  }
+  
+  .toastContainer {
+    min-width: 0;
+    width: 100%;
+  }
+} 
