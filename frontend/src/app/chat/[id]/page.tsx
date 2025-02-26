@@ -48,7 +48,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         const initializeWebSocket = () => {
             const client = new Client({
-                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                webSocketFactory: () => new SockJS('/ws'),
                 onConnect: () => {
                     console.log('Connected to chat WebSocket');
                     client.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
@@ -74,20 +74,28 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // Fetch initial data
         const fetchData = async () => {
-            try {
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
-                const [groupResponse, messagesResponse] = await Promise.all([
-                    fetch(`${backendUrl}/api/taxi/group/${resolvedParams.id}`),
-                    fetch(`${backendUrl}/api/taxi/chat/${resolvedParams.id}`)
-                ]);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                router.push('/');
+                return;
+            }
 
-                if (groupResponse.ok) {
-                    const groupData = await groupResponse.json();
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            try {
+                const response = await fetch(`/api/chat/${resolvedParams.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const groupData = await response.json();
                     setGroup(groupData);
                 }
 
-                if (messagesResponse.ok) {
-                    const messagesData = await messagesResponse.json();
+                if (response.ok) {
+                    const messagesData = await response.json();
                     setMessages(messagesData);
                 }
             } catch (error) {
@@ -104,7 +112,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client.deactivate();
             }
         };
-    }, [resolvedParams.id]);
+    }, [resolvedParams.id, router]);
 
     useEffect(() => {
         scrollToBottom();

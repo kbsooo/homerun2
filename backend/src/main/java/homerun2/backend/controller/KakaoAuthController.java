@@ -6,6 +6,7 @@ import homerun2.backend.model.KakaoUserInfo;
 import homerun2.backend.service.JwtService;
 import homerun2.backend.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
@@ -19,6 +20,9 @@ public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
+
+    @Value("${frontend.url:http://localhost:3000}")
+    private String frontendUrl;
 
     @GetMapping(value = "/callback", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
@@ -44,11 +48,11 @@ public class KakaoAuthController {
                     <script>
                         const loginData = decodeURIComponent('%s');
                         const data = JSON.parse(loginData);
-                        window.opener.postMessage(data, 'http://localhost:3000');
+                        window.opener.postMessage(data, '%s');
                         window.close();
                     </script>
                 </body>
                 </html>
-                """, jsonResponse);
+                """, jsonResponse, frontendUrl);
     }
 }

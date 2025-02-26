@@ -4,9 +4,15 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: `${
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
-        }/api/:path*`,
+        destination: "http://3.27.108.105:8080/api/:path*",
+      },
+      {
+        source: "/bus/:path*",
+        destination: "http://3.27.108.105:8080/bus/:path*",
+      },
+      {
+        source: "/ws",
+        destination: "http://3.27.108.105:8080/ws",
       },
     ];
   },

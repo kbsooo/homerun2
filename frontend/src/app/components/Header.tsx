@@ -67,7 +67,8 @@ export default function Header() {
 
   const handleLogin = () => {
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
-    const REDIRECT_URI = encodeURIComponent('http://localhost:8080/api/auth/kakao/callback');
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+    const REDIRECT_URI = encodeURIComponent(`${backendUrl}/api/auth/kakao/callback`);
     const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     
     // 새 창에서 카카오 로그인 페이지 열기
@@ -75,7 +76,8 @@ export default function Header() {
     
     // 팝업 창에서 메시지 수신
     const messageHandler = (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:8080') return;
+      // CORS 이슈 해결: 도메인을 하드코딩하지 않고 환경 변수에서 가져옴
+      if (event.origin !== backendUrl) return;
       
       const { token, nickname, profileImage } = event.data;
       if (token) {

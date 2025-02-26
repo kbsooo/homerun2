@@ -2,23 +2,26 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   request: Request,
-  { params }: { params: Record<string, string> }
+  { params }: { params: { chatRoomId: string } }
 ) {
-  const chatRoomId = params.chatRoomId;
   const token = request.headers.get('Authorization');
-  
   if (!token) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   try {
-    const response = await fetch(`http://localhost:8080/api/chat/messages/${chatRoomId}`, {
+    console.log(`Fetching chat messages for room: ${params.chatRoomId}`);
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+    
+    const response = await fetch(`${backendUrl}/api/chat/messages/${params.chatRoomId}`, {
       method: 'GET',
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
-      credentials: 'include',
+      cache: 'no-store',
+      next: { revalidate: 0 }
     });
 
     if (!response.ok) {
