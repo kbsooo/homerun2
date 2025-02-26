@@ -118,92 +118,58 @@ export default function Header() {
       
       console.log('카카오 로그인 시도, 리다이렉트 URI:', `${window.location.origin}/api/auth/kakao/callback`);
       
-      // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
-      window.location.href = kakaoURL;
+      // 로그인 처리 방식 선택
+      const USE_POPUP = true; // 팝업 방식 사용 여부
       
-      // const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
-      
-      // if (!popup) {
-      //   console.error('팝업이 차단되었습니다');
-      //   alert('팝업 차단을 해제해주세요.');
-      //   return;
-      // }
-      
-      // // 팝업 창에서 메시지 수신 설정
-      // const messageHandler = (event: MessageEvent) => {
-      //   // 로그인 메시지인지 확인 - 여러 출처에서 메시지를 허용함
-      //   console.log('메시지 수신됨, 출처:', event.origin);
+      if (USE_POPUP) {
+        // 팝업 방식으로 카카오 로그인
+        const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
         
-      //   // 메시지에 토큰이 있는지 확인
-      //   if (event.data && event.data.token) {
-      //     console.log('유효한 로그인 메시지 확인됨');
-          
-      //     // 신뢰할 수 있는 출처인지 검증 (백엔드 서버 도메인 또는 현재 도메인)
-      //     const trustedOrigins = [
-      //       'http://3.27.108.105:8080',   // 백엔드 서버 HTTP
-      //       'https://api.homerun2.site',  // 백엔드 서버 HTTPS (있다면)
-      //       window.location.origin        // 현재 프론트엔드 도메인 (자체 API 라우트용)
-      //     ];
-          
-      //     if (!trustedOrigins.includes(event.origin)) {
-      //       console.warn('신뢰할 수 없는 출처의 메시지:', event.origin);
-      //       // 개발 모드에서는 경고만, 프로덕션에서는 차단
-      //       if (process.env.NODE_ENV === 'production') {
-      //         return;
-      //       }
-      //       console.log('개발 모드: 신뢰할 수 없는 출처지만 계속 진행');
-      //     }
-          
-      //     // 로그인 처리
-      //     localStorage.setItem('token', event.data.token);
-      //     localStorage.setItem('userInfo', JSON.stringify({
-      //       nickname: event.data.nickname,
-      //       profileImage: event.data.profileImage
-      //     }));
-      //     setUserInfo({
-      //       nickname: event.data.nickname,
-      //       profileImage: event.data.profileImage
-      //     });
-      //     console.log('메시지를 통해 로그인 성공');
-          
-      //     // 팝업 창 닫기
-      //     if (popup && !popup.closed) {
-      //       popup.close();
-      //     }
-          
-      //     // 이벤트 리스너 제거
-      //     window.removeEventListener('message', messageHandler);
-          
-      //     // UI 알림 추가
-      //     alert(`${event.data.nickname}님, 환영합니다!`);
-      //   }
-      // };
-      
-      // // 메시지 이벤트 리스너 추가
-      // window.addEventListener('message', messageHandler);
-      
-      // // 팝업 창이 닫히는지 주기적으로 확인 (60초 제한)
-      // let popupCheckCount = 0;
-      // const maxChecks = 120; // 60초 (500ms 간격으로 120회)
-      
-      // const checkPopup = setInterval(() => {
-      //   popupCheckCount++;
+        if (!popup) {
+          console.error('팝업이 차단되었습니다');
+          alert('팝업 차단을 해제하거나, 페이지 리다이렉트 방식으로 로그인하겠습니다.');
+          // 팝업이 차단된 경우 페이지 리다이렉트 방식으로 폴백
+          window.location.href = kakaoURL;
+          return;
+        }
         
-      //   // 제한 시간 초과 또는 팝업 닫힘 확인
-      //   if (popupCheckCount > maxChecks || (popup && popup.closed)) {
-      //     clearInterval(checkPopup);
-      //     window.removeEventListener('message', messageHandler);
+        // 페이지가 리다이렉트 되었는지 확인하는 타이머
+        let checkCount = 0;
+        const maxChecks = 240; // 2분 제한 (500ms * 240)
+        
+        const checkPopupClosed = setInterval(() => {
+          checkCount++;
           
-      //     if (popupCheckCount > maxChecks && popup && !popup.closed) {
-      //       popup.close();
-      //       console.log('로그인 시간 초과');
-      //       alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
-      //     } else if (popup && popup.closed) {
-      //       console.log('팝업이 닫혔습니다.');
-      //       // 여기서는 code를 확인하지 않음 - 백엔드에서 직접 처리하므로
-      //     }
-      //   }
-      // }, 500);
+          if (checkCount > maxChecks) {
+            // 시간 초과
+            clearInterval(checkPopupClosed);
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+            console.log('로그인 시간 초과');
+            alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
+            return;
+          }
+          
+          if (popup && popup.closed) {
+            clearInterval(checkPopupClosed);
+            console.log('팝업이 닫혔습니다. 로그인 여부 확인...');
+            
+            // 로그인 상태 확인
+            const token = localStorage.getItem('token');
+            const savedUserInfo = localStorage.getItem('userInfo');
+            
+            if (token && savedUserInfo) {
+              console.log('로그인이 성공적으로 처리되었습니다');
+            } else {
+              console.log('팝업이 닫혔으나 로그인 정보가 없습니다 (취소 또는 실패)');
+            }
+          }
+        }, 500);
+      } else {
+        // 전체 페이지 리다이렉트 방식으로 카카오 로그인
+        window.location.href = kakaoURL;
+      }
     } catch (loginError) {
       console.error('로그인 시도 중 오류:', loginError);
       alert('로그인 처리 중 오류가 발생했습니다.');
