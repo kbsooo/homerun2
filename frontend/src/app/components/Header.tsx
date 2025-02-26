@@ -129,11 +129,11 @@ export default function Header() {
         return;
       }
       
-      // 현재 프론트엔드 도메인으로 리다이렉트 설정 (중요! 사이트 도메인과 일치해야 함)
-      const REDIRECT_URI = encodeURIComponent(window.location.origin);
+      // 백엔드 서버의 카카오 콜백 엔드포인트를 리다이렉트 URI로 설정
+      const REDIRECT_URI = encodeURIComponent('http://3.27.108.105:8080/api/auth/kakao/callback');
       const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
       
-      console.log('카카오 로그인 시도, 리다이렉트 URI:', window.location.origin);
+      console.log('카카오 로그인 시도, 리다이렉트 URI:', 'http://3.27.108.105:8080/api/auth/kakao/callback');
       
       // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
       const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
@@ -146,51 +146,76 @@ export default function Header() {
       
       // 팝업 창에서 메시지 수신 설정
       const messageHandler = (event: MessageEvent) => {
-        // 카카오 로그인 완료 후 리다이렉트될 도메인에서 오는 메시지만 처리
-        if (event.origin === window.location.origin) {
-          console.log('메시지 수신됨');
+        // 로그인 메시지인지 확인 - 여러 출처에서 메시지를 허용함
+        console.log('메시지 수신됨, 출처:', event.origin);
+        
+        // 메시지에 토큰이 있는지 확인
+        if (event.data && event.data.token) {
+          console.log('유효한 로그인 메시지 확인됨');
           
-          if (event.data && event.data.token) {
-            // 로그인 처리
-            localStorage.setItem('token', event.data.token);
-            localStorage.setItem('userInfo', JSON.stringify({
-              nickname: event.data.nickname,
-              profileImage: event.data.profileImage
-            }));
-            setUserInfo({
-              nickname: event.data.nickname,
-              profileImage: event.data.profileImage
-            });
-            console.log('메시지를 통해 로그인 성공');
-            
-            // 팝업 창 닫기
-            if (popup && !popup.closed) {
-              popup.close();
+          // 신뢰할 수 있는 출처인지 검증 (백엔드 서버 도메인 또는 현재 도메인)
+          const trustedOrigins = [
+            'http://3.27.108.105:8080',   // 백엔드 서버 HTTP
+            'https://api.homerun2.site',  // 백엔드 서버 HTTPS (있다면)
+            window.location.origin        // 현재 프론트엔드 도메인 (자체 API 라우트용)
+          ];
+          
+          if (!trustedOrigins.includes(event.origin)) {
+            console.warn('신뢰할 수 없는 출처의 메시지:', event.origin);
+            // 개발 모드에서는 경고만, 프로덕션에서는 차단
+            if (process.env.NODE_ENV === 'production') {
+              return;
             }
-            
-            // 이벤트 리스너 제거
-            window.removeEventListener('message', messageHandler);
+            console.log('개발 모드: 신뢰할 수 없는 출처지만 계속 진행');
           }
+          
+          // 로그인 처리
+          localStorage.setItem('token', event.data.token);
+          localStorage.setItem('userInfo', JSON.stringify({
+            nickname: event.data.nickname,
+            profileImage: event.data.profileImage
+          }));
+          setUserInfo({
+            nickname: event.data.nickname,
+            profileImage: event.data.profileImage
+          });
+          console.log('메시지를 통해 로그인 성공');
+          
+          // 팝업 창 닫기
+          if (popup && !popup.closed) {
+            popup.close();
+          }
+          
+          // 이벤트 리스너 제거
+          window.removeEventListener('message', messageHandler);
+          
+          // UI 알림 추가
+          alert(`${event.data.nickname}님, 환영합니다!`);
         }
       };
       
       // 메시지 이벤트 리스너 추가
       window.addEventListener('message', messageHandler);
       
-      // 팝업 창이 닫히는지 주기적으로 확인
+      // 팝업 창이 닫히는지 주기적으로 확인 (60초 제한)
+      let popupCheckCount = 0;
+      const maxChecks = 120; // 60초 (500ms 간격으로 120회)
+      
       const checkPopup = setInterval(() => {
-        if (popup && popup.closed) {
+        popupCheckCount++;
+        
+        // 제한 시간 초과 또는 팝업 닫힘 확인
+        if (popupCheckCount > maxChecks || (popup && popup.closed)) {
           clearInterval(checkPopup);
           window.removeEventListener('message', messageHandler);
           
-          // 현재 URL에 code 파라미터가 있는지 확인
-          const urlParams = new URLSearchParams(window.location.search);
-          const code = urlParams.get('code');
-          if (code) {
-            console.log('URL에서 코드 발견, 처리 시작');
-            handleKakaoCallback(code);
-          } else {
-            console.log('팝업이 닫혔으나 코드가 없음 (로그인 취소 또는 실패)');
+          if (popupCheckCount > maxChecks && popup && !popup.closed) {
+            popup.close();
+            console.log('로그인 시간 초과');
+            alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
+          } else if (popup && popup.closed) {
+            console.log('팝업이 닫혔습니다.');
+            // 여기서는 code를 확인하지 않음 - 백엔드에서 직접 처리하므로
           }
         }
       }, 500);
