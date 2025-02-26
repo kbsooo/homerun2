@@ -276,6 +276,8 @@ export default function Main() {
           명지대
         </button>
       </div>
+      
+
 
       {/* 에러 메시지 표시 */}
       {error && (
@@ -324,7 +326,7 @@ export default function Main() {
                     </div>
                   </div>
                 </div>
-              </div>
+              </div>              
             ))}
           </>
         )}
@@ -333,6 +335,10 @@ export default function Main() {
         {!error && !shuttleData?.message && busData.length === 0 && !shuttleData?.routes && (
           <div className={styles.notice}>운행 중인 버스가 없습니다.</div>
         )}
+      </div>
+
+      <div className={styles.disclaimer}>
+        ※ 이 정보는 실제와 차이가 있을 수 있습니다.
       </div>
     </main>
   );
