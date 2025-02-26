@@ -74,19 +74,28 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // Fetch initial data
         const fetchData = async () => {
-            try {
-                const [groupRes, chatRes] = await Promise.all([
-                    fetch(`/api/taxi/group/${resolvedParams.id}`),
-                    fetch(`/api/taxi/chat/${resolvedParams.id}`)
-                ]);
+            const token = localStorage.getItem('token');
+            if (!token) {
+                router.push('/');
+                return;
+            }
 
-                if (groupRes.ok) {
-                    const groupData = await groupRes.json();
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+            try {
+                const response = await fetch(`/api/chat/${resolvedParams.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (response.ok) {
+                    const groupData = await response.json();
                     setGroup(groupData);
                 }
 
-                if (chatRes.ok) {
-                    const messagesData = await chatRes.json();
+                if (response.ok) {
+                    const messagesData = await response.json();
                     setMessages(messagesData);
                 }
             } catch (error) {
@@ -103,7 +112,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client.deactivate();
             }
         };
-    }, [resolvedParams.id]);
+    }, [resolvedParams.id, router]);
 
     useEffect(() => {
         scrollToBottom();

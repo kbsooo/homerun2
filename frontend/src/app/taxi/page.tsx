@@ -116,7 +116,7 @@ export default function TaxiPage() {
         
         const initializeWebSocket = () => {
             client = new Client({
-                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                webSocketFactory: () => new SockJS('/ws'),
                 onConnect: () => {
                     console.log('Connected to WebSocket');
                     client?.subscribe(`/topic/taxi-count/${taxiDestination}`, (message) => {
@@ -149,7 +149,7 @@ export default function TaxiPage() {
     }, [taxiDestination]);
 
     useEffect(() => {
-        fetch(`http://localhost:8080/api/taxi/count/${taxiDestination}`)
+        fetch(`/api/taxi/count/${taxiDestination}`)
             .catch(console.error);
     }, [taxiDestination]);
 
@@ -174,7 +174,7 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
-            const response = await fetch('http://localhost:8080/api/taxi/join', {
+            const response = await fetch('/api/taxi/join', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -229,9 +229,9 @@ export default function TaxiPage() {
 
     const checkGroupStatus = async (groupId: string) => {
         try {
-            const response = await fetch(`http://localhost:8080/api/taxi/group/${groupId}`, {
+            const response = await fetch(`/api/taxi/group/${groupId}`, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
                 }
             });
             
