@@ -67,8 +67,8 @@ export default function Header() {
 
   const handleLogin = () => {
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
-    // 등록된 리다이렉트 URI 사용
-    const REDIRECT_URI = encodeURIComponent('https://homerun2.vercel.app/api/auth/kakao/callback');
+    // 백엔드 서버의 콜백 URI 사용
+    const REDIRECT_URI = encodeURIComponent('http://3.27.108.105:8080/api/auth/kakao/callback');
     const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     
     // 새 창에서 카카오 로그인 페이지 열기
@@ -76,8 +76,8 @@ export default function Header() {
     
     // 팝업 창에서 메시지 수신
     const messageHandler = (event: MessageEvent) => {
-      // 도메인 확인 (보안)
-      if (event.origin !== 'https://homerun2.vercel.app') return;
+      // 백엔드 서버의 도메인이 메시지 출처인지 확인
+      if (event.origin !== 'http://3.27.108.105:8080') return;
       
       const { token, nickname, profileImage } = event.data;
       if (token) {
