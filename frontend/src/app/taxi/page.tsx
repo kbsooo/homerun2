@@ -20,7 +20,7 @@ export default function TaxiPage() {
     const [locationError, setLocationError] = useState<string | null>(null);
     const [manualLocationMode, setManualLocationMode] = useState(false);
     const router = useRouter();
-    const { theme, darkMode, toggleDarkMode, direction, setDirection } = useThemeContext();
+    const { darkMode, toggleDarkMode, direction, setDirection } = useThemeContext();
 
     // Convert taxi destination to/from app direction
     const taxiDestination = direction === 'fromMJUtoGH' ? '기흥역' : '명지대';
@@ -109,7 +109,7 @@ export default function TaxiPage() {
         const intervalId = setInterval(checkLocation, 60000); // 1분마다 위치 체크
         
         return () => clearInterval(intervalId);
-    }, [direction, manualLocationMode]);
+    }, [direction, manualLocationMode, bounds.gh, bounds.mju]);
 
     useEffect(() => {
         let client: Client | null = null;
@@ -245,7 +245,7 @@ export default function TaxiPage() {
         }
     };
 
-    const handleGroupComplete = (groupId: string, groupStatus: any) => {
+    const handleGroupComplete = (groupId: string, groupStatus: { status: string; memberCount: number }) => {
         setIsLoading(false);
         
         if (groupStatus.status === 'COMPLETE') {

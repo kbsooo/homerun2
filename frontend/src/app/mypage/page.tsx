@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -11,39 +11,17 @@ import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function MyPage() {
   const router = useRouter();
+  const { theme, darkMode } = useThemeContext();
   const [chatHistories, setChatHistories] = useState<ChatHistory[]>([]);
   const [selectedChat, setSelectedChat] = useState<string | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
+  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080');
 
-  const { theme, darkMode } = useThemeContext();
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const userInfo = localStorage.getItem('userInfo');
-    
-    if (!token || !userInfo) {
-      router.push('/');
-      return;
-    }
-
-    fetchChatHistories();
-  }, [router]);
-
-  useEffect(() => {
-    if (selectedChat) {
-      fetchChatMessages(selectedChat);
-    }
-  }, [selectedChat]);
-
-  useEffect(() => {
-    document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
-  }, [theme, darkMode]);
-
-  const fetchChatHistories = async () => {
+  const fetchChatHistories = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -64,7 +42,7 @@ export default function MyPage() {
 
       console.log('Final token being sent:', token);
 
-      const response = await fetch('http://localhost:8080/api/chat/histories', {
+      const response = await fetch(`${backendUrl}/api/chat/histories`, {
         method: 'GET',
         headers: {
           'Authorization': token,
@@ -134,9 +112,9 @@ export default function MyPage() {
       console.error('Failed to fetch chat histories:', error);
       setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
     }
-  };
+  }, [backendUrl, router]);
 
-  const fetchChatMessages = async (chatId: string) => {
+  const fetchChatMessages = useCallback(async (chatId: string) => {
     try {
       setIsMessagesLoading(true);
       setMessagesError(null);
@@ -148,7 +126,7 @@ export default function MyPage() {
         return;
       }
 
-      const response = await fetch(`http://localhost:8080/api/chat/${chatId}`, {
+      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -183,14 +161,36 @@ export default function MyPage() {
         throw new Error('잘못된 응답 형식입니다.');
       }
 
-      setMessages(data);
+      setChatMessages(data);
     } catch (error) {
       console.error('Failed to fetch chat messages:', error);
       setMessagesError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
     } finally {
       setIsMessagesLoading(false);
     }
-  };
+  }, [backendUrl, router]);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const userInfo = localStorage.getItem('userInfo');
+    
+    if (!token || !userInfo) {
+      router.push('/');
+      return;
+    }
+
+    fetchChatHistories();
+  }, [router, fetchChatHistories]);
+
+  useEffect(() => {
+    if (selectedChat) {
+      fetchChatMessages(selectedChat);
+    }
+  }, [selectedChat, fetchChatMessages]);
+
+  useEffect(() => {
+    document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
+  }, [theme, darkMode]);
 
   const handleRetry = () => {
     if (selectedChat) {
@@ -262,8 +262,8 @@ export default function MyPage() {
                     <div className={`${styles.loading} ${darkMode ? styles.darkMode : ''}`}>
                       <LoadingSpinner />
                     </div>
-                  ) : messages.length > 0 ? (
-                    messages.map((message) => (
+                  ) : chatMessages.length > 0 ? (
+                    chatMessages.map((message) => (
                       <div key={message.id} className={`${styles.messageItem} ${darkMode ? styles.darkMode : ''}`}>
                         <div className={styles.messageHeader}>
                           <span className={`${styles.sender} ${darkMode ? styles.darkMode : ''}`}>{message.sender}</span>

@@ -49,7 +49,7 @@ export default function Toast({ message, type = 'info', duration = 3000, onClose
 }
 
 // Toast manager for multiple toasts
-interface ToastOptions extends Omit<ToastProps, 'message'> {}
+type ToastOptions = Omit<ToastProps, 'message'>;
 
 let toastId = 0;
 

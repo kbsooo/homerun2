@@ -67,7 +67,7 @@ export default function Main() {
     period: ""
   });
   const [error, setError] = useState<string | null>(null);
-  const { theme, darkMode, direction, setDirection } = useThemeContext();
+  const { darkMode, direction, setDirection } = useThemeContext();
   const [flippedCards, setFlippedCards] = useState<{[key: string]: boolean}>({});
 
   useEffect(() => {
@@ -116,7 +116,7 @@ export default function Main() {
             setBusData([]);
             setError('버스 정보를 불러올 수 없습니다.');
           }
-        } catch (error) {
+        } catch {
           console.error('버스 정보 조회 실패');
           setBusData([]);
           setError('버스 정보를 불러올 수 없습니다.');
@@ -134,12 +134,12 @@ export default function Main() {
             } else {
               setShuttleData(null);
             }
-          } catch (error) {
+          } catch {
             console.error('셔틀 정보 조회 실패');
             setShuttleData(null);
           }
         }
-      } catch (error) {
+      } catch {
         console.error('데이터를 불러오는데 실패했습니다');
         setBusData([]);
         setShuttleData(null);
@@ -196,20 +196,22 @@ export default function Main() {
     const cards: TransportCard[] = [];
 
     // Add bus data
-    data && Array.isArray(data) && data.forEach((bus, index) => {
-      const nextBusTime = bus.도착시간2 
-        ? `다음 ${bus.버스번호}번 버스는 ${bus.도착시간2}분 후 도착${bus.남은좌석수2 ? ` (${bus.남은좌석수2})` : ''}`
-        : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
-      
-      cards.push({
-        type: 'bus',
-        time: parseInt(bus.도착시간),
-        title: bus.버스번호,
-        subtitle: `${bus.도착시간}분`,
-        additionalInfo: bus.남은좌석수,
-        nextBusTime: nextBusTime
+    if (data && Array.isArray(data)) {
+      data.forEach((bus) => {
+        const nextBusTime = bus.도착시간2 
+          ? `다음 ${bus.버스번호}번 버스는 ${bus.도착시간2}분 후 도착${bus.남은좌석수2 ? ` (${bus.남은좌석수2})` : ''}`
+          : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
+        
+        cards.push({
+          type: 'bus',
+          time: parseInt(bus.도착시간),
+          title: bus.버스번호,
+          subtitle: `${bus.도착시간}분`,
+          additionalInfo: bus.남은좌석수,
+          nextBusTime: nextBusTime
+        });
       });
-    });
+    }
 
     // Add shuttle data
     if (shuttleData?.routes) {
