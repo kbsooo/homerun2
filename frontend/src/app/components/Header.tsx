@@ -32,30 +32,62 @@ export default function Header() {
     // URL의 쿼리 파라미터에서 로그인 데이터 확인
     const urlParams = new URLSearchParams(window.location.search);
     const loginData = urlParams.get('loginData');
+    const error = urlParams.get('error');
     
     if (loginData) {
-      const data = JSON.parse(decodeURIComponent(loginData));
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userInfo', JSON.stringify({
-          nickname: data.nickname,
-          profileImage: data.profileImage
-        }));
-        setUserInfo({
-          nickname: data.nickname,
-          profileImage: data.profileImage
-        });
-        
-        // 로그인 데이터를 URL에서 제거
-        window.history.replaceState({}, document.title, '/');
+      try {
+        const data = JSON.parse(decodeURIComponent(loginData));
+        if (data.token) {
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('userInfo', JSON.stringify({
+            nickname: data.nickname,
+            profileImage: data.profileImage
+          }));
+          setUserInfo({
+            nickname: data.nickname,
+            profileImage: data.profileImage
+          });
+          
+          // 로그인 성공 메시지 표시
+          alert(`${data.nickname}님, 환영합니다!`);
+          
+          // 로그인 데이터를 URL에서 제거
+          window.history.replaceState({}, document.title, '/');
+        }
+      } catch (e) {
+        console.error('로그인 데이터 파싱 오류:', e);
       }
     }
-
-    // 카카오 인증 코드 처리
-    const code = urlParams.get('code');
-    if (code) {
-      handleKakaoCallback(code);
+    
+    // 에러 파라미터가 있는 경우 처리
+    if (error) {
+      let errorMessage = '로그인 중 오류가 발생했습니다.';
+      const status = urlParams.get('status');
+      const message = urlParams.get('message');
+      
+      if (error === 'backend_error' && status) {
+        errorMessage = `백엔드 서버 오류 (${status}): 관리자에게 문의하세요.`;
+      } else if (error === 'connection_error') {
+        errorMessage = `서버 연결 오류: ${message || '서버에 연결할 수 없습니다'}`;
+      } else if (error === 'no_code') {
+        errorMessage = '카카오 인증 코드가 없습니다. 다시 시도해주세요.';
+      } else if (error === 'internal_error') {
+        errorMessage = `서버 내부 오류: ${message || '알 수 없는 오류'}`;
+      }
+      
+      console.error('로그인 오류:', error, message);
+      alert(errorMessage);
+      
+      // 에러 파라미터를 URL에서 제거
+      window.history.replaceState({}, document.title, '/');
     }
+
+    // 카카오 인증 코드 처리는 이제 API 라우트에서 자동으로 처리됨
+    // 아래 코드 삭제 (더 이상 필요 없음)
+    // const code = urlParams.get('code');
+    // if (code) {
+    //   handleKakaoCallback(code);
+    // }
   }, [pathname]);
 
   useEffect(() => {
@@ -71,55 +103,6 @@ export default function Header() {
     };
   }, []);
 
-  // 카카오 인증 코드 백엔드로 전송하는 함수
-  const handleKakaoCallback = async (code: string) => {
-    try {
-      console.log('카카오 인증 코드 처리 시작');
-      
-      // HTTPS 프록시 또는 보안 연결 사용
-      // 백엔드 URL이 HTTP인 경우 프론트에서 직접 처리
-      const response = await fetch(`/api/auth/kakao/callback`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ code }),
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('로그인 응답 오류:', response.status, errorText);
-        throw new Error(`Login failed: ${response.status}`);
-      }
-
-      const data = await response.json();
-      console.log('로그인 응답 받음:', { hasToken: !!data.token });
-      
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('userInfo', JSON.stringify({
-          nickname: data.nickname,
-          profileImage: data.profileImage
-        }));
-        setUserInfo({
-          nickname: data.nickname,
-          profileImage: data.profileImage
-        });
-        
-        // 인증 코드를 URL에서 제거
-        window.history.replaceState({}, document.title, '/');
-        console.log('로그인 성공, 사용자 정보 저장됨');
-      } else {
-        console.error('로그인 응답에 토큰이 없음');
-        throw new Error('Login response missing token');
-      }
-    } catch (error) {
-      console.error('로그인 처리 오류:', error);
-      // 로그인 실패 시 알림 처리
-      alert('로그인에 실패했습니다. 다시 시도해주세요.');
-    }
-  };
-
   const handleLogin = () => {
     try {
       const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
@@ -129,96 +112,98 @@ export default function Header() {
         return;
       }
       
-      // 백엔드 서버의 카카오 콜백 엔드포인트를 리다이렉트 URI로 설정
-      const REDIRECT_URI = encodeURIComponent('http://3.27.108.105:8080/api/auth/kakao/callback');
+      // 프론트엔드의 API 라우트를 카카오 콜백 URI로 사용
+      const REDIRECT_URI = encodeURIComponent(`${window.location.origin}/api/auth/kakao/callback`);
       const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
       
-      console.log('카카오 로그인 시도, 리다이렉트 URI:', 'http://3.27.108.105:8080/api/auth/kakao/callback');
+      console.log('카카오 로그인 시도, 리다이렉트 URI:', `${window.location.origin}/api/auth/kakao/callback`);
       
       // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
-      const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
+      window.location.href = kakaoURL;
       
-      if (!popup) {
-        console.error('팝업이 차단되었습니다');
-        alert('팝업 차단을 해제해주세요.');
-        return;
-      }
+      // const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
       
-      // 팝업 창에서 메시지 수신 설정
-      const messageHandler = (event: MessageEvent) => {
-        // 로그인 메시지인지 확인 - 여러 출처에서 메시지를 허용함
-        console.log('메시지 수신됨, 출처:', event.origin);
+      // if (!popup) {
+      //   console.error('팝업이 차단되었습니다');
+      //   alert('팝업 차단을 해제해주세요.');
+      //   return;
+      // }
+      
+      // // 팝업 창에서 메시지 수신 설정
+      // const messageHandler = (event: MessageEvent) => {
+      //   // 로그인 메시지인지 확인 - 여러 출처에서 메시지를 허용함
+      //   console.log('메시지 수신됨, 출처:', event.origin);
         
-        // 메시지에 토큰이 있는지 확인
-        if (event.data && event.data.token) {
-          console.log('유효한 로그인 메시지 확인됨');
+      //   // 메시지에 토큰이 있는지 확인
+      //   if (event.data && event.data.token) {
+      //     console.log('유효한 로그인 메시지 확인됨');
           
-          // 신뢰할 수 있는 출처인지 검증 (백엔드 서버 도메인 또는 현재 도메인)
-          const trustedOrigins = [
-            'http://3.27.108.105:8080',   // 백엔드 서버 HTTP
-            'https://api.homerun2.site',  // 백엔드 서버 HTTPS (있다면)
-            window.location.origin        // 현재 프론트엔드 도메인 (자체 API 라우트용)
-          ];
+      //     // 신뢰할 수 있는 출처인지 검증 (백엔드 서버 도메인 또는 현재 도메인)
+      //     const trustedOrigins = [
+      //       'http://3.27.108.105:8080',   // 백엔드 서버 HTTP
+      //       'https://api.homerun2.site',  // 백엔드 서버 HTTPS (있다면)
+      //       window.location.origin        // 현재 프론트엔드 도메인 (자체 API 라우트용)
+      //     ];
           
-          if (!trustedOrigins.includes(event.origin)) {
-            console.warn('신뢰할 수 없는 출처의 메시지:', event.origin);
-            // 개발 모드에서는 경고만, 프로덕션에서는 차단
-            if (process.env.NODE_ENV === 'production') {
-              return;
-            }
-            console.log('개발 모드: 신뢰할 수 없는 출처지만 계속 진행');
-          }
+      //     if (!trustedOrigins.includes(event.origin)) {
+      //       console.warn('신뢰할 수 없는 출처의 메시지:', event.origin);
+      //       // 개발 모드에서는 경고만, 프로덕션에서는 차단
+      //       if (process.env.NODE_ENV === 'production') {
+      //         return;
+      //       }
+      //       console.log('개발 모드: 신뢰할 수 없는 출처지만 계속 진행');
+      //     }
           
-          // 로그인 처리
-          localStorage.setItem('token', event.data.token);
-          localStorage.setItem('userInfo', JSON.stringify({
-            nickname: event.data.nickname,
-            profileImage: event.data.profileImage
-          }));
-          setUserInfo({
-            nickname: event.data.nickname,
-            profileImage: event.data.profileImage
-          });
-          console.log('메시지를 통해 로그인 성공');
+      //     // 로그인 처리
+      //     localStorage.setItem('token', event.data.token);
+      //     localStorage.setItem('userInfo', JSON.stringify({
+      //       nickname: event.data.nickname,
+      //       profileImage: event.data.profileImage
+      //     }));
+      //     setUserInfo({
+      //       nickname: event.data.nickname,
+      //       profileImage: event.data.profileImage
+      //     });
+      //     console.log('메시지를 통해 로그인 성공');
           
-          // 팝업 창 닫기
-          if (popup && !popup.closed) {
-            popup.close();
-          }
+      //     // 팝업 창 닫기
+      //     if (popup && !popup.closed) {
+      //       popup.close();
+      //     }
           
-          // 이벤트 리스너 제거
-          window.removeEventListener('message', messageHandler);
+      //     // 이벤트 리스너 제거
+      //     window.removeEventListener('message', messageHandler);
           
-          // UI 알림 추가
-          alert(`${event.data.nickname}님, 환영합니다!`);
-        }
-      };
+      //     // UI 알림 추가
+      //     alert(`${event.data.nickname}님, 환영합니다!`);
+      //   }
+      // };
       
-      // 메시지 이벤트 리스너 추가
-      window.addEventListener('message', messageHandler);
+      // // 메시지 이벤트 리스너 추가
+      // window.addEventListener('message', messageHandler);
       
-      // 팝업 창이 닫히는지 주기적으로 확인 (60초 제한)
-      let popupCheckCount = 0;
-      const maxChecks = 120; // 60초 (500ms 간격으로 120회)
+      // // 팝업 창이 닫히는지 주기적으로 확인 (60초 제한)
+      // let popupCheckCount = 0;
+      // const maxChecks = 120; // 60초 (500ms 간격으로 120회)
       
-      const checkPopup = setInterval(() => {
-        popupCheckCount++;
+      // const checkPopup = setInterval(() => {
+      //   popupCheckCount++;
         
-        // 제한 시간 초과 또는 팝업 닫힘 확인
-        if (popupCheckCount > maxChecks || (popup && popup.closed)) {
-          clearInterval(checkPopup);
-          window.removeEventListener('message', messageHandler);
+      //   // 제한 시간 초과 또는 팝업 닫힘 확인
+      //   if (popupCheckCount > maxChecks || (popup && popup.closed)) {
+      //     clearInterval(checkPopup);
+      //     window.removeEventListener('message', messageHandler);
           
-          if (popupCheckCount > maxChecks && popup && !popup.closed) {
-            popup.close();
-            console.log('로그인 시간 초과');
-            alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
-          } else if (popup && popup.closed) {
-            console.log('팝업이 닫혔습니다.');
-            // 여기서는 code를 확인하지 않음 - 백엔드에서 직접 처리하므로
-          }
-        }
-      }, 500);
+      //     if (popupCheckCount > maxChecks && popup && !popup.closed) {
+      //       popup.close();
+      //       console.log('로그인 시간 초과');
+      //       alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
+      //     } else if (popup && popup.closed) {
+      //       console.log('팝업이 닫혔습니다.');
+      //       // 여기서는 code를 확인하지 않음 - 백엔드에서 직접 처리하므로
+      //     }
+      //   }
+      // }, 500);
     } catch (loginError) {
       console.error('로그인 시도 중 오류:', loginError);
       alert('로그인 처리 중 오류가 발생했습니다.');
