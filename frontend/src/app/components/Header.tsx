@@ -67,7 +67,8 @@ export default function Header() {
 
   const handleLogin = () => {
     const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
-    const REDIRECT_URI = encodeURIComponent('http://localhost:8080/api/auth/kakao/callback');
+    const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const REDIRECT_URI = encodeURIComponent(`${BACKEND_URL}/api/auth/kakao/callback`);
     const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     
     // 새 창에서 카카오 로그인 페이지 열기
@@ -75,7 +76,8 @@ export default function Header() {
     
     // 팝업 창에서 메시지 수신
     const messageHandler = (event: MessageEvent) => {
-      if (event.origin !== 'http://localhost:8080') return;
+      // 백엔드 URL로부터의 메시지만 허용
+      if (!event.origin.startsWith(BACKEND_URL)) return;
       
       const { token, nickname, profileImage } = event.data;
       if (token) {

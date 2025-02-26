@@ -1,16 +1,17 @@
 // app/components/Footer.tsx
 import React from 'react';
 import Link from 'next/link';
-// import { Github } from 'lucide-react';
 import styles from './Footer.module.css';
 
 export default function Footer() {
+  const currentYear = new Date().getFullYear();
+  
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>
         <div className={styles.content}>
           <div className={styles.credits}>
-            <span>Based on</span>
+            <span>Based on </span>
             <Link
               href="https://github.com/ijodea/homerun"
               target="_blank"
@@ -19,9 +20,7 @@ export default function Footer() {
             >
               ijodea/homerun
             </Link>
-          </div>
-          <div className={styles.credits}>
-            <span>Remade by</span>
+            <span>, Remade by </span>
             <Link
               href="https://github.com/kbsooo"
               target="_blank"
@@ -33,7 +32,7 @@ export default function Footer() {
           </div>
         </div>
         <div className={styles.copyright}>
-          © {new Date().getFullYear()} KBSOO. All rights reserved.
+          © {currentYear} KBSOO. All rights reserved.
         </div>
       </div>
     </footer>

@@ -1,6 +1,6 @@
 .footer {
   width: 100%;
-  padding: 2rem 0;
+  padding: 1.75rem 0;
   background-color: white;
   border-top: 1px solid #e5e7eb;
   margin-top: auto;
@@ -33,7 +33,11 @@
   --theme-active: #003d7a;
 }
 
-/* components/Footer.module.css */
+:global(.darkMode) .footer {
+  background-color: #1e1e1e;
+  border-top-color: #2d2d2d;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
@@ -43,16 +47,17 @@
 .content {
   display: flex;
   justify-content: center;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .credits {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.2rem;
   color: #6b7280;
-  font-size: 0.875rem;
+  font-size: 0.925rem;
 }
 
 :global(.darkMode) .credits {
@@ -64,23 +69,44 @@
   text-decoration: none;
   font-weight: 500;
   transition: all 0.2s ease;
-  padding: 0.25rem 0.5rem;
+  padding: 0 0.25rem;
   border-radius: 4px;
+  position: relative;
+}
+
+.link::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background-color: var(--theme-color);
+  transition: width 0.3s ease;
+}
+
+.link:hover::after {
+  width: 100%;
 }
 
 .link:hover {
   color: var(--theme-hover);
-  background-color: #f3f4f6;
 }
 
 :global(.darkMode) .link:hover {
-  background-color: #2d2d2d;
+  color: var(--theme-color);
 }
 
 .copyright {
   text-align: center;
   color: #9ca3af;
   font-size: 0.875rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+:global(.darkMode) .copyright {
+  border-top-color: #2d2d2d;
 }
 
 @media (max-width: 640px) {
@@ -89,12 +115,10 @@
   }
 
   .container {
-    padding: 0 1rem;
+    padding: 0 1.25rem;
   }
 
-  .content {
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
+  .credits {
+    gap: 0.1rem;
   }
 }
