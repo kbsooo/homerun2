@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { redirect } from 'next/navigation';
 
 // 개발 환경에서 테스트 로그인을 항상 사용할지 여부
-const ALWAYS_USE_TEST_LOGIN = true; // 개발 중에는 테스트 로그인 사용 (백엔드 없이도 작동)
+const ALWAYS_USE_TEST_LOGIN = false; // 실제 백엔드 연결 사용
 
 // 테스트 사용자 데이터 (개발용)
 const TEST_USER_DATA = {
