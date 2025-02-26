@@ -74,8 +74,9 @@ export default function Header() {
   // 카카오 인증 코드 백엔드로 전송하는 함수
   const handleKakaoCallback = async (code: string) => {
     try {
-      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-      const response = await fetch(`${BACKEND_URL}/api/auth/kakao/login`, {
+      // HTTPS 프록시 또는 보안 연결 사용
+      // 백엔드 URL이 HTTP인 경우 프론트에서 직접 처리
+      const response = await fetch(`/api/auth/kakao/callback`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,7 +105,8 @@ export default function Header() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      // 로그인 실패 시 알림 처리를 추가할 수 있습니다
+      // 로그인 실패 시 알림 처리
+      alert('로그인에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
@@ -114,8 +116,21 @@ export default function Header() {
     const REDIRECT_URI = encodeURIComponent(window.location.origin);
     const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
     
-    // 현재 창에서 카카오 로그인 페이지로 이동
-    window.location.href = kakaoURL;
+    // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
+    const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
+    
+    // 팝업 창이 닫히는지 주기적으로 확인
+    const checkPopup = setInterval(() => {
+      if (popup && popup.closed) {
+        clearInterval(checkPopup);
+        // 현재 URL에 code 파라미터가 있는지 확인
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get('code');
+        if (code) {
+          handleKakaoCallback(code);
+        }
+      }
+    }, 500);
   };
 
   const handleLogout = () => {
