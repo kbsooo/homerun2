@@ -11,9 +11,9 @@ export async function GET(
 
   try {
     console.log(`Fetching chat messages for room: ${params.chatRoomId}`);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
     
-    const response = await fetch(`${backendUrl}/api/chat/messages/${params.chatRoomId}`, {
+    // 백엔드 URL을 직접 참조하는 대신 Next.js rewrites가 처리하도록 상대 경로 사용
+    const response = await fetch(`http://3.27.108.105:8080/api/chat/messages/${params.chatRoomId}`, {
       method: 'GET',
       headers: {
         'Authorization': token,
