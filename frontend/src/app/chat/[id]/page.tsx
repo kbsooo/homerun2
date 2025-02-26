@@ -48,7 +48,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         const initializeWebSocket = () => {
             const client = new Client({
-                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
+                webSocketFactory: () => new SockJS('/ws'),
                 onConnect: () => {
                     console.log('Connected to chat WebSocket');
                     client.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {

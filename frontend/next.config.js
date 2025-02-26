@@ -8,6 +8,24 @@ const nextConfig = {
           process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
         }/api/:path*`,
       },
+      {
+        source: "/bus/:path*",
+        destination: `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
+        }/bus/:path*`,
+      },
+      {
+        source: "/ws",
+        destination: `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
+        }/ws`,
+      },
+      {
+        source: "/ws/:path*",
+        destination: `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
+        }/ws/:path*`,
+      },
     ];
   },
   env: {
