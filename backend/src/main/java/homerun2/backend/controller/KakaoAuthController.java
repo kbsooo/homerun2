@@ -8,6 +8,7 @@ import homerun2.backend.service.KakaoAuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -54,5 +55,39 @@ public class KakaoAuthController {
                 </body>
                 </html>
                 """, jsonResponse, frontendUrl);
+    }
+
+    /**
+     * 프론트엔드의 Next.js API Route에서 호출하는 엔드포인트
+     * 카카오 인증 코드를 받아 처리하고 로그인 응답을 반환합니다.
+     */
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@RequestBody KakaoLoginRequest request) throws Exception {
+        String accessToken = kakaoAuthService.getKakaoAccessToken(request.getCode());
+        KakaoUserInfo userInfo = kakaoAuthService.getKakaoUserInfo(accessToken);
+
+        String token = jwtService.generateToken(userInfo.getId(), userInfo.getNickname());
+
+        LoginResponse response = LoginResponse.of(
+                token,
+                userInfo.getNickname(),
+                userInfo.getProfileImage());
+
+        return ResponseEntity.ok(response);
+    }
+}
+
+/**
+ * 카카오 로그인 요청을 위한 DTO
+ */
+class KakaoLoginRequest {
+    private String code;
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 }

@@ -74,6 +74,8 @@ export default function Header() {
   // 카카오 인증 코드 백엔드로 전송하는 함수
   const handleKakaoCallback = async (code: string) => {
     try {
+      console.log('카카오 인증 코드 처리 시작');
+      
       // HTTPS 프록시 또는 보안 연결 사용
       // 백엔드 URL이 HTTP인 경우 프론트에서 직접 처리
       const response = await fetch(`/api/auth/kakao/callback`, {
@@ -85,10 +87,14 @@ export default function Header() {
       });
 
       if (!response.ok) {
-        throw new Error('Login failed');
+        const errorText = await response.text();
+        console.error('로그인 응답 오류:', response.status, errorText);
+        throw new Error(`Login failed: ${response.status}`);
       }
 
       const data = await response.json();
+      console.log('로그인 응답 받음:', { hasToken: !!data.token });
+      
       if (data.token) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('userInfo', JSON.stringify({
@@ -102,35 +108,96 @@ export default function Header() {
         
         // 인증 코드를 URL에서 제거
         window.history.replaceState({}, document.title, '/');
+        console.log('로그인 성공, 사용자 정보 저장됨');
+      } else {
+        console.error('로그인 응답에 토큰이 없음');
+        throw new Error('Login response missing token');
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('로그인 처리 오류:', error);
       // 로그인 실패 시 알림 처리
       alert('로그인에 실패했습니다. 다시 시도해주세요.');
     }
   };
 
   const handleLogin = () => {
-    const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
-    // 현재 프론트엔드 도메인으로 리다이렉트 설정 (중요! 사이트 도메인과 일치해야 함)
-    const REDIRECT_URI = encodeURIComponent(window.location.origin);
-    const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
-    
-    // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
-    const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
-    
-    // 팝업 창이 닫히는지 주기적으로 확인
-    const checkPopup = setInterval(() => {
-      if (popup && popup.closed) {
-        clearInterval(checkPopup);
-        // 현재 URL에 code 파라미터가 있는지 확인
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        if (code) {
-          handleKakaoCallback(code);
-        }
+    try {
+      const KAKAO_CLIENT_ID = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID;
+      if (!KAKAO_CLIENT_ID) {
+        console.error('KAKAO_CLIENT_ID가 설정되지 않았습니다');
+        alert('카카오 로그인 설정 오류가 발생했습니다.');
+        return;
       }
-    }, 500);
+      
+      // 현재 프론트엔드 도메인으로 리다이렉트 설정 (중요! 사이트 도메인과 일치해야 함)
+      const REDIRECT_URI = encodeURIComponent(window.location.origin);
+      const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
+      
+      console.log('카카오 로그인 시도, 리다이렉트 URI:', window.location.origin);
+      
+      // 새 창에서 카카오 로그인 페이지 열기 (팝업으로 변경)
+      const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
+      
+      if (!popup) {
+        console.error('팝업이 차단되었습니다');
+        alert('팝업 차단을 해제해주세요.');
+        return;
+      }
+      
+      // 팝업 창에서 메시지 수신 설정
+      const messageHandler = (event: MessageEvent) => {
+        // 카카오 로그인 완료 후 리다이렉트될 도메인에서 오는 메시지만 처리
+        if (event.origin === window.location.origin) {
+          console.log('메시지 수신됨');
+          
+          if (event.data && event.data.token) {
+            // 로그인 처리
+            localStorage.setItem('token', event.data.token);
+            localStorage.setItem('userInfo', JSON.stringify({
+              nickname: event.data.nickname,
+              profileImage: event.data.profileImage
+            }));
+            setUserInfo({
+              nickname: event.data.nickname,
+              profileImage: event.data.profileImage
+            });
+            console.log('메시지를 통해 로그인 성공');
+            
+            // 팝업 창 닫기
+            if (popup && !popup.closed) {
+              popup.close();
+            }
+            
+            // 이벤트 리스너 제거
+            window.removeEventListener('message', messageHandler);
+          }
+        }
+      };
+      
+      // 메시지 이벤트 리스너 추가
+      window.addEventListener('message', messageHandler);
+      
+      // 팝업 창이 닫히는지 주기적으로 확인
+      const checkPopup = setInterval(() => {
+        if (popup && popup.closed) {
+          clearInterval(checkPopup);
+          window.removeEventListener('message', messageHandler);
+          
+          // 현재 URL에 code 파라미터가 있는지 확인
+          const urlParams = new URLSearchParams(window.location.search);
+          const code = urlParams.get('code');
+          if (code) {
+            console.log('URL에서 코드 발견, 처리 시작');
+            handleKakaoCallback(code);
+          } else {
+            console.log('팝업이 닫혔으나 코드가 없음 (로그인 취소 또는 실패)');
+          }
+        }
+      }, 500);
+    } catch (loginError) {
+      console.error('로그인 시도 중 오류:', loginError);
+      alert('로그인 처리 중 오류가 발생했습니다.');
+    }
   };
 
   const handleLogout = () => {
