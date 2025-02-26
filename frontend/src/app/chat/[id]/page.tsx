@@ -48,7 +48,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         const initializeWebSocket = () => {
             const client = new Client({
-                webSocketFactory: () => new SockJS('/ws'),
+                webSocketFactory: () => new SockJS('http://localhost:8080/ws'),
                 onConnect: () => {
                     console.log('Connected to chat WebSocket');
                     client.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
@@ -74,27 +74,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // Fetch initial data
         const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                router.push('/');
-                return;
-            }
-
             try {
-                const response = await fetch(`/api/chat/${resolvedParams.id}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
-                    }
-                });
+                const [groupRes, chatRes] = await Promise.all([
+                    fetch(`/api/taxi/group/${resolvedParams.id}`),
+                    fetch(`/api/taxi/chat/${resolvedParams.id}`)
+                ]);
 
-                if (response.ok) {
-                    const groupData = await response.json();
+                if (groupRes.ok) {
+                    const groupData = await groupRes.json();
                     setGroup(groupData);
                 }
 
-                if (response.ok) {
-                    const messagesData = await response.json();
+                if (chatRes.ok) {
+                    const messagesData = await chatRes.json();
                     setMessages(messagesData);
                 }
             } catch (error) {
@@ -111,7 +103,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client.deactivate();
             }
         };
-    }, [resolvedParams.id, router]);
+    }, [resolvedParams.id]);
 
     useEffect(() => {
         scrollToBottom();

@@ -4,15 +4,9 @@ const nextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://3.27.108.105:8080/api/:path*",
-      },
-      {
-        source: "/bus/:path*",
-        destination: "http://3.27.108.105:8080/bus/:path*",
-      },
-      {
-        source: "/ws",
-        destination: "http://3.27.108.105:8080/ws",
+        destination: `${
+          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080"
+        }/api/:path*`,
       },
     ];
   },
@@ -23,6 +17,26 @@ const nextConfig = {
       process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080",
     NEXT_PUBLIC_API_URL:
       process.env.NEXT_PUBLIC_API_URL || "http://localhost:8080",
+  },
+  async headers() {
+    return [
+      {
+        source: "/api/:path*",
+        headers: [
+          { key: "Access-Control-Allow-Credentials", value: "true" },
+          { key: "Access-Control-Allow-Origin", value: "*" },
+          {
+            key: "Access-Control-Allow-Methods",
+            value: "GET,DELETE,PATCH,POST,PUT",
+          },
+          {
+            key: "Access-Control-Allow-Headers",
+            value:
+              "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version",
+          },
+        ],
+      },
+    ];
   },
   typescript: {
     ignoreBuildErrors: true,

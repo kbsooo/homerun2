@@ -125,7 +125,8 @@ export default function Main() {
         // 주말이 아닐 때만 셔틀 데이터 가져오기
         if (!isWeekend) {
           try {
-            const shuttleEndpoint = `${backendUrl}/api/shuttle/${direction}`;
+            // 상대 경로로 API 호출
+            const shuttleEndpoint = `/api/shuttle/${direction}`;
             const shuttleResponse = await fetch(shuttleEndpoint);
             
             if (shuttleResponse.ok) {
