@@ -92,7 +92,7 @@ export default function Main() {
         }
 
         // 버스 데이터 가져오기
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
         const busEndpoint = direction === 'fromMJUtoGH' 
           ? `${backendUrl}/bus/fromMJUtoGH` 
           : `${backendUrl}/bus/fromGHtoMJU`;
