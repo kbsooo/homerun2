@@ -11,10 +11,13 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Value("${backend.url:http://localhost:8080}")
+    private String backendUrl;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(frontendUrl, "https://homerun2.vercel.app")
+                .allowedOrigins(frontendUrl, "https://homerun2.vercel.app", backendUrl, "http://3.27.108.105:8080")
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .allowCredentials(true)

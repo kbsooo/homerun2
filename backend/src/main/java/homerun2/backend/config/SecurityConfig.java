@@ -19,6 +19,9 @@ public class SecurityConfig {
     @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
+    @Value("${backend.url:http://localhost:8080}")
+    private String backendUrl;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -39,7 +42,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList(frontendUrl, "https://homerun2.vercel.app"));
+        configuration.setAllowedOrigins(
+                Arrays.asList(frontendUrl, "https://homerun2.vercel.app", backendUrl, "http://3.27.108.105:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
