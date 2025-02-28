@@ -22,8 +22,14 @@ spring:
 
 # Frontend and Backend URLs for deployment
 frontend:
-  url: ${FRONTEND_URL:https://homerun2.vercel.app}
+  # 배포
+  # url: ${FRONTEND_URL:https://homerun2.vercel.app}
+  # 로컬
+  url: ${FRONTEND_URL:http://localhost:3000}
 backend:
+  # 배포
+  # url: ${BACKEND_URL:http://3.27.108.105:8080}
+  # 로컬
   url: ${BACKEND_URL:http://localhost:8080}
 
 bus:

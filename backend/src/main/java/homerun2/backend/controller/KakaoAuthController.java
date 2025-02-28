@@ -21,8 +21,10 @@ public class KakaoAuthController {
     private final KakaoAuthService kakaoAuthService;
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
-
-    @Value("${frontend.url:https://homerun2.vercel.app}")
+    // 배포
+    // @Value("${frontend.url:https://homerun2.vercel.app}")
+    // 로컬
+    @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     @GetMapping(value = "/callback", produces = MediaType.TEXT_HTML_VALUE)
@@ -44,9 +46,9 @@ public class KakaoAuthController {
 
         // 로그 추가
         System.out.println("카카오 로그인 성공: 사용자 " + userInfo.getNickname() + ", 토큰 생성됨");
-        System.out.println("프론트엔드로 메시지 전송 준비: " + frontendUrl);
+        System.out.println("프론트엔드로 리다이렉트 준비: " + frontendUrl);
 
-        // HTML 응답을 반환하여 프론트엔드로 데이터 전달
+        // HTML 응답을 반환하여 프론트엔드로 리다이렉트
         return String.format("""
                 <html>
                 <body>
@@ -54,27 +56,14 @@ public class KakaoAuthController {
                         const loginData = decodeURIComponent('%s');
                         const data = JSON.parse(loginData);
                         console.log('로그인 데이터:', data);
-                        // 모든 가능한 프론트엔드 도메인으로 메시지 시도
-                        try {
-                            window.opener.postMessage(data, '%s');
-                            console.log('프론트엔드로 메시지 전송됨: %s');
-                        } catch(e) {
-                            console.error('메시지 전송 실패:', e);
-                            // 대체 주소로 시도
-                            try {
-                                window.opener.postMessage(data, 'https://homerun2.vercel.app');
-                                console.log('대체 주소로 메시지 전송됨: https://homerun2.vercel.app');
-                            } catch(e2) {
-                                console.error('대체 주소로도 메시지 전송 실패:', e2);
-                            }
-                        }
 
-                        // 3초 후 자동으로 창 닫기
-                        setTimeout(() => window.close(), 3000);
+                        // 팝업 방식에서 리다이렉트 방식으로 변경
+                        // 프론트엔드로 리다이렉트하면서 로그인 데이터 전달
+                        window.location.href = '%s/?loginData=%s';
                     </script>
                 </body>
                 </html>
-                """, jsonResponse, frontendUrl, frontendUrl);
+                """, jsonResponse, frontendUrl, jsonResponse);
     }
 
     /**

@@ -112,13 +112,14 @@ export default function Header() {
         return;
       }
       
-      // 프론트엔드의 API 라우트를 카카오 콜백 URI로 사용
-      const REDIRECT_URI = encodeURIComponent(`${window.location.origin}/api/auth/kakao/callback`);
+      // 백엔드 서버의 콜백 URI를 사용 (프론트엔드가 아닌)
+      const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+      const REDIRECT_URI = encodeURIComponent(`${BACKEND_URL}/api/auth/kakao/callback`);
       const kakaoURL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`;
       
-      console.log('카카오 로그인 시도, 리다이렉트 URI:', `${window.location.origin}/api/auth/kakao/callback`);
+      console.log('카카오 로그인 시도, 리다이렉트 URI:', `${BACKEND_URL}/api/auth/kakao/callback`);
       
-      // 팝업 방식을 사용하지 않고 직접 리다이렉트 방식 사용
+      // 직접 리다이렉트 방식으로 카카오 로그인
       console.log('직접 리다이렉트 방식으로 카카오 로그인 시도...');
       window.location.href = kakaoURL;
       
