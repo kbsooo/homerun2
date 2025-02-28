@@ -301,7 +301,7 @@ export default function Main() {
               >
                 <div className={styles.cardInner}>
                   <div className={styles.cardFront}>
-                    <div className={styles.busNumber}>
+                    <div className={`${styles.busNumber} ${transport.title.includes('에버라인 + 명지대역') || transport.title.includes('명지대역 셔틀버스 + 에버라인') ? styles.longBusTitle : ''}`}>
                       {index < 3 && <span className={styles.medal}>{getMedalEmoji(index)}</span>}
                       {transport.type === 'bus' ? (
                         <BusIcon busNumber={transport.title} className={styles.busIcon} />
