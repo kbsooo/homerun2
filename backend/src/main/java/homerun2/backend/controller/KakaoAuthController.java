@@ -22,9 +22,9 @@ public class KakaoAuthController {
     private final JwtService jwtService;
     private final ObjectMapper objectMapper;
     // 배포
-    // @Value("${frontend.url:https://homerun2.vercel.app}")
+    @Value("${frontend.url:https://homerun2.vercel.app}")
     // 로컬
-    @Value("${frontend.url:http://localhost:3000}")
+    // @Value("${frontend.url:http://localhost:3000}")
     private String frontendUrl;
 
     @GetMapping(value = "/callback", produces = MediaType.TEXT_HTML_VALUE)
