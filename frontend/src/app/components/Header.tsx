@@ -187,7 +187,7 @@ export default function Header() {
                     {userInfo.nickname}님
                   </button>
                   <div className={`${styles.dropdownContent} ${isDropdownOpen ? styles.show : ''}`}>
-                    <Link 
+                    {/* <Link 
                       href='/mypage' 
                       className={styles.dropdownItem}
                       onClick={() => {
@@ -202,7 +202,7 @@ export default function Header() {
                       }}
                     >
                       마이페이지
-                    </Link>
+                    </Link> */}
                     <button onClick={handleLogout} className={styles.dropdownItem}>
                       로그아웃
                     </button>
