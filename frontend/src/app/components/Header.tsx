@@ -118,58 +118,10 @@ export default function Header() {
       
       console.log('카카오 로그인 시도, 리다이렉트 URI:', `${window.location.origin}/api/auth/kakao/callback`);
       
-      // 로그인 처리 방식 선택
-      const USE_POPUP = true; // 팝업 방식 사용 여부
+      // 팝업 방식을 사용하지 않고 직접 리다이렉트 방식 사용
+      console.log('직접 리다이렉트 방식으로 카카오 로그인 시도...');
+      window.location.href = kakaoURL;
       
-      if (USE_POPUP) {
-        // 팝업 방식으로 카카오 로그인
-        const popup = window.open(kakaoURL, 'kakao-login', 'width=600,height=800');
-        
-        if (!popup) {
-          console.error('팝업이 차단되었습니다');
-          alert('팝업 차단을 해제하거나, 페이지 리다이렉트 방식으로 로그인하겠습니다.');
-          // 팝업이 차단된 경우 페이지 리다이렉트 방식으로 폴백
-          window.location.href = kakaoURL;
-          return;
-        }
-        
-        // 페이지가 리다이렉트 되었는지 확인하는 타이머
-        let checkCount = 0;
-        const maxChecks = 240; // 2분 제한 (500ms * 240)
-        
-        const checkPopupClosed = setInterval(() => {
-          checkCount++;
-          
-          if (checkCount > maxChecks) {
-            // 시간 초과
-            clearInterval(checkPopupClosed);
-            if (popup && !popup.closed) {
-              popup.close();
-            }
-            console.log('로그인 시간 초과');
-            alert('로그인 시간이 초과되었습니다. 다시 시도해주세요.');
-            return;
-          }
-          
-          if (popup && popup.closed) {
-            clearInterval(checkPopupClosed);
-            console.log('팝업이 닫혔습니다. 로그인 여부 확인...');
-            
-            // 로그인 상태 확인
-            const token = localStorage.getItem('token');
-            const savedUserInfo = localStorage.getItem('userInfo');
-            
-            if (token && savedUserInfo) {
-              console.log('로그인이 성공적으로 처리되었습니다');
-            } else {
-              console.log('팝업이 닫혔으나 로그인 정보가 없습니다 (취소 또는 실패)');
-            }
-          }
-        }, 500);
-      } else {
-        // 전체 페이지 리다이렉트 방식으로 카카오 로그인
-        window.location.href = kakaoURL;
-      }
     } catch (loginError) {
       console.error('로그인 시도 중 오류:', loginError);
       alert('로그인 처리 중 오류가 발생했습니다.');
