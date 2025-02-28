@@ -164,21 +164,14 @@ export default function Header() {
         <div className={styles.menuContainer}>
           <ul className={styles.menu}>
             <li className={styles.menuListItem}>
-              <Link 
-                href='/taxi' 
+              <button 
                 className={styles.menuItem}
                 onClick={() => {
-                  if (pathname.startsWith('/chat/')) {
-                    const chatId = pathname.split('/').pop();
-                    if (chatId) {
-                      setMinimizedChatId(chatId);
-                      setIsMinimized(true);
-                    }
-                  }
+                  alert('개발중입니다. 조금만 기다려주세요!');
                 }}
               >
                 택시 모집
-              </Link>
+              </button>
             </li>
             <li className={styles.menuListItem}>
               {userInfo ? (
