@@ -32,8 +32,55 @@ interface TransportCard {
   title: string;
   subtitle?: string;
   additionalInfo?: string;
-  nextBusTime?: string;
 }
+
+// 버스별 상세 정보 데이터
+const busDetailInfo: { [key: string]: { [key: string]: string | {fromGHtoMJU: string, fromMJUtoGH: string} } } = {
+  '5005': {
+    운행시간: '첫차: 05:30, 막차: 23:00',
+    배차간격: '11~18분',
+    노선정보: '명지대 ↔ 서울역버스환승센터',
+    소요시간: {
+      fromGHtoMJU: '명지대까지 약 35분 소요',
+      fromMJUtoGH: '기흥역까지 약 35분 소요'
+    }
+  },
+  '820': {
+    운행시간: '첫차: 05:00, 막차: 23:10',
+    노선정보: '명지대 ↔ 정자역',
+    소요시간: {
+      fromGHtoMJU: '명지대까지 약 35분 소요',
+      fromMJUtoGH: '기흥역까지 약 35분 소요'
+    }
+  },
+  '5600': {
+    운행시간: '첫차: 05:40, 막차: 23:00',
+    배차간격: '8~13분',
+    노선정보: '명지대 ↔ 강변역',
+    소요시간: {
+      fromGHtoMJU: '명지대까지 약 32분 소요',
+      fromMJUtoGH: '기흥역까지 약 32분 소요'
+    }
+  },
+  '5003A': {
+    운행시간: '첫차: 05:10, 막차: 13:55',
+    배차간격: '10~15분',
+    노선정보: '명지대앞 ↔ 신논현역',
+    소요시간: {
+      fromGHtoMJU: '명지대까지 약 38분 소요',
+      fromMJUtoGH: '기흥역까지 약 38분 소요'
+    }
+  },
+  '5003B': {
+    운행시간: '첫차: 14:10, 막차: 23:15',
+    배차간격: '10~15분',
+    노선정보: '명지대앞 ↔ 신논현역',
+    소요시간: {
+      fromGHtoMJU: '명지대까지 약 38분 소요',
+      fromMJUtoGH: '기흥역까지 약 38분 소요'
+    }
+  }
+};
 
 const BusIcon = ({ busNumber, className }: { busNumber: string, className?: string }) => {
   const getBusColor = (busNumber: string) => {
@@ -198,17 +245,12 @@ export default function Main() {
     // Add bus data
     if (data && Array.isArray(data)) {
       data.forEach((bus) => {
-        const nextBusTime = bus.도착시간2 
-          ? `다음 ${bus.버스번호}번 버스는 ${bus.도착시간2}분 후 도착${bus.남은좌석수2 ? ` (${bus.남은좌석수2})` : ''}`
-          : `다음 ${bus.버스번호}번 버스 도착 정보가 없습니다`;
-        
         cards.push({
           type: 'bus',
           time: parseInt(bus.도착시간),
           title: bus.버스번호,
           subtitle: `${bus.도착시간}분`,
-          additionalInfo: bus.남은좌석수,
-          nextBusTime: nextBusTime
+          additionalInfo: bus.남은좌석수
         });
       });
     }
@@ -221,7 +263,7 @@ export default function Main() {
           time: shuttleData.routes.giheung.time,
           title: '기흥역 셔틀버스',
           subtitle: formatTime(shuttleData.routes.giheung.time),
-          nextBusTime: '다음 셔틀버스 시간표 확인 중...'
+          additionalInfo: '다음 셔틀버스 시간표 확인 중...'
         });
       }
 
@@ -237,8 +279,7 @@ export default function Main() {
           time: time,
           title: title,
           subtitle: formatTime(time),
-          additionalInfo: additionalInfo,
-          nextBusTime: '다음 셔틀버스 시간표 확인 중...'
+          additionalInfo: additionalInfo
         });
       }
     }
@@ -253,6 +294,39 @@ export default function Main() {
       case 2: return '🥉';
       default: return '';
     }
+  };
+
+  // 버스번호에 따른 상세 정보 가져오기
+  const getBusDetailInfo = (busNumber: string) => {
+    const info = busDetailInfo[busNumber];
+    if (!info) return <div>버스 정보가 없습니다.</div>;
+    
+    return (
+      <div className={styles.busDetailContainer}>
+        <div className={styles.busDetailTitle}>{busNumber}번 버스</div>
+        <div className={styles.busDetailContent}>
+          {Object.entries(info).map(([key, value]) => {
+            // 소요시간은 방향에 따라 다르게 표시
+            if (key === '소요시간' && typeof value === 'object') {
+              return (
+                <div key={key} className={styles.busDetailRow}>
+                  <span className={styles.busDetailLabel}>{key}</span>
+                  <span className={styles.busDetailValue}>{value[direction]}</span>
+                </div>
+              );
+            }
+            
+            // 그 외 정보는 그대로 표시
+            return (
+              <div key={key} className={styles.busDetailRow}>
+                <span className={styles.busDetailLabel}>{key}</span>
+                <span className={styles.busDetailValue}>{value as string}</span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -322,7 +396,15 @@ export default function Main() {
                   </div>
                   <div className={styles.cardBack}>
                     <div className={styles.nextBusInfo}>
-                      {transport.nextBusTime}
+                      {transport.type === 'bus' 
+                        ? getBusDetailInfo(transport.title) 
+                        : <div className={styles.shuttleDetailInfo}>
+                            <div className={styles.busDetailTitle}>{transport.title}</div>
+                            <div className={styles.shuttleDetailValue}>
+                              {transport.additionalInfo}
+                            </div>
+                          </div>
+                      }
                     </div>
                   </div>
                 </div>

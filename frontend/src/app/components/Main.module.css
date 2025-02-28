@@ -15,6 +15,7 @@
   --theme-color: #e6a700;
   --theme-hover: #cc9500;
   --theme-active: #b38300;
+  --theme-color-rgb: 230, 167, 0;
 }
 
 /* Blue Theme */
@@ -25,6 +26,7 @@
   --theme-color: #071d49;
   --theme-hover: #0a2a6e;
   --theme-active: #0d3693;
+  --theme-color-rgb: 7, 29, 73;
 }
 
 /* Dark Mode */
@@ -36,6 +38,7 @@
   --theme-color: #fabe00;
   --theme-hover: #e5ad00;
   --theme-active: #d19e00;
+  --theme-color-rgb: 250, 190, 0;
 }
 
 .darkMode.blueTheme {
@@ -45,6 +48,7 @@
   --theme-color: #005eb8;
   --theme-hover: #004e99;
   --theme-active: #003d7a;
+  --theme-color-rgb: 0, 94, 184;
 }
 
 .darkMode .timeDisplay,
@@ -210,11 +214,77 @@
 }
 
 .nextBusInfo {
-  font-size: 1.2rem;
   color: var(--theme-color);
   font-weight: 600;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 버스 상세 정보 스타일 */
+.busDetailContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}
+
+.busDetailTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--theme-color);
   text-align: center;
-  padding: 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.3rem;
+  margin-bottom: 0.4rem;
+}
+
+.busDetailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding-top: 0.1rem;
+}
+
+.busDetailRow {
+  display: flex;
+  align-items: center;
+  line-height: 1.2;
+  margin-bottom: 0.15rem;
+}
+
+.busDetailLabel {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: white;
+  background-color: var(--theme-color);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  min-width: 3.5rem;
+  text-align: center;
+  margin-right: 0.5rem;
+}
+
+.busDetailValue {
+  font-size: 0.7rem;
+  color: #4b5563;
+  flex: 1;
+}
+
+.darkMode .busDetailValue {
+  color: #e5e7eb;
+}
+
+.darkMode .busDetailTitle {
+  border-color: #374151;
+}
+
+.darkMode .busDetailLabel {
+  background-color: var(--theme-color);
+  color: white;
 }
 
 /* Dark mode support */
@@ -507,4 +577,26 @@
 
 .darkMode .noShuttleMessage {
   color: #9ca3af;
+}
+
+/* 셔틀 상세 정보 스타일 */
+.shuttleDetailInfo {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.shuttleDetailValue {
+  font-size: 0.8rem;
+  color: #4b5563;
+  text-align: center;
+  margin-top: 0.6rem;
+  line-height: 1.4;
+}
+
+.darkMode .shuttleDetailValue {
+  color: #e5e7eb;
 }
