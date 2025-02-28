@@ -1,18 +1,27 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   async rewrites() {
+    // 환경변수에서 백엔드 URL을 가져오거나 기본값 사용
+    const backendUrl =
+      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
     return [
       {
-        source: "/api/:path*",
-        destination: "http://3.27.108.105:8080/api/:path*",
-      },
-      {
-        source: "/bus/:path*",
-        destination: "http://3.27.108.105:8080/bus/:path*",
+        source: "/ws/:path*",
+        destination: `${backendUrl}/ws/:path*`,
       },
       {
         source: "/ws",
-        destination: "http://3.27.108.105:8080/ws",
+        destination: `${backendUrl}/ws`,
+      },
+      {
+        source: "/api/:path*",
+        destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: "/bus/:path*",
+        destination: `${backendUrl}/bus/:path*`,
       },
     ];
   },

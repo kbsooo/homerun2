@@ -280,6 +280,36 @@
     transform: translateY(0);
 }
 
+.connectionStatus {
+    display: flex;
+    align-items: center;
+    font-size: 0.8rem;
+    margin-right: 10px;
+    color: #666;
+}
+
+.statusDot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.connected {
+    background-color: #2ecc71;
+    box-shadow: 0 0 5px #2ecc71;
+}
+
+.disconnected {
+    background-color: #e74c3c;
+    box-shadow: 0 0 5px #e74c3c;
+}
+
+.input:disabled, .sendButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
     .container {
         padding: 1rem;
