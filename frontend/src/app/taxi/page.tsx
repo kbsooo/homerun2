@@ -7,6 +7,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { useThemeContext } from '../context/ThemeContext';
 import LoadingSpinner from '../components/LoadingSpinner';
+import Image from 'next/image';
 
 export default function TaxiPage() {
     const [isLoading, setIsLoading] = useState(false);
@@ -24,16 +25,16 @@ export default function TaxiPage() {
     // Bounds configuration for different locations
     const bounds = {
         mju: [
-            37.224238,  // minLat
-            127.187856, // minLng
-            37.22938,   // maxLat
-            127.19028   // maxLng
+            37.224134,  // minLat
+            127.187080, // minLng
+            37.223561,   // maxLat
+            127.188542   // maxLng
         ],
         gh: [
-            37.274678,  // minLat
-            127.115739, // minLng
-            37.27749,   // maxLat
-            127.12048   // maxLng
+            37.275036,  // minLat
+            127.115421, // minLng
+            37.274146,   // maxLat
+            127.115921   // maxLng
         ]
     };
 
@@ -43,9 +44,9 @@ export default function TaxiPage() {
             // 처음 페이지 로드 시에도 바로 위치를 확인하지 않고 안내 메시지만 표시
             setIsCheckingLocation(false);
             if (direction === 'fromMJUtoGH') {
-                setLocationError('위치 확인이 필요합니다. 명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
+                setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
             } else {
-                setLocationError('위치 확인이 필요합니다. 기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+                setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
             }
             setIsInValidLocation(false);
         }
@@ -318,6 +319,26 @@ export default function TaxiPage() {
                         ) : locationError ? (
                             <div className={styles.locationError}>
                                 <p>{locationError}</p>
+                                {/* 방향에 따라 적절한 이미지를 표시합니다 */}
+                                <div className={styles.boundsImageContainer}>
+                                    {direction === 'fromMJUtoGH' ? (
+                                        <Image 
+                                            src="/taxi/mjuBounds.png" 
+                                            alt="명지대 위치 범위" 
+                                            width={300} 
+                                            height={200}
+                                            className={styles.boundsImage}
+                                        />
+                                    ) : (
+                                        <Image 
+                                            src="/taxi/ghBounds.png" 
+                                            alt="기흥역 위치 범위" 
+                                            width={300} 
+                                            height={200}
+                                            className={styles.boundsImage}
+                                        />
+                                    )}
+                                </div>
                                 <div className={styles.locationButtonGroup}>
                                     <button 
                                         className={styles.checkLocationButton} 

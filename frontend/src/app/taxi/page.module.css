@@ -165,6 +165,26 @@
     margin: 0;
 }
 
+.boundsImageContainer {
+    width: 100%;
+    max-width: 300px;
+    margin: 0.5rem 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.boundsImage {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    display: block;
+}
+
+:global(.darkMode) .boundsImageContainer {
+    box-shadow: 0 2px 4px rgba(255, 255, 255, 0.05);
+}
+
 .locationConfirm {
     font-size: 1rem;
     color: #059669;
