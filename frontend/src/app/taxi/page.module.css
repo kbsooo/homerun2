@@ -207,6 +207,33 @@
     color: #10b981;
 }
 
+.locationSuccess {
+    font-size: 1rem;
+    color: #059669;
+    text-align: center;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+:global(.darkMode) .locationSuccess {
+    background-color: #1e1e1e;
+    color: #10b981;
+}
+
+.locationSuccess p {
+    margin: 0;
+    font-weight: 600;
+}
+
 .locationConfirm p {
     margin: 0;
     font-weight: 600;

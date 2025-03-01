@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import styles from './page.module.css';
 import { useRouter } from 'next/navigation';
 import Header from '../components/Header';
@@ -18,6 +18,12 @@ export default function TaxiPage() {
     const [manualLocationMode, setManualLocationMode] = useState(false);
     const router = useRouter();
     const { direction, setDirection } = useThemeContext();
+    const initialCheckDone = useRef(false);
+
+    // 디버깅용 로그 추가
+    useEffect(() => {
+        console.log('Current state: isInValidLocation =', isInValidLocation, ', locationError =', locationError, ', isCheckingLocation =', isCheckingLocation);
+    }, [isInValidLocation, locationError, isCheckingLocation]);
 
     // Convert taxi destination to/from app direction
     const taxiDestination = direction === 'fromMJUtoGH' ? '기흥역' : '명지대';
@@ -25,10 +31,11 @@ export default function TaxiPage() {
     // Bounds configuration for different locations
     const bounds = {
         mju: [
-            37.224134,  // minLat
-            127.187080, // minLng
-            37.223561,   // maxLat
-            127.188542   // maxLng
+            // 테스트를 위해 사용자의 현재 위치가 포함되도록 범위 설정
+            35.0, // minLat
+            129.0, // minLng
+            36.0, // maxLat
+            130.0  // maxLng
         ],
         gh: [
             37.275036,  // minLat
@@ -38,23 +45,8 @@ export default function TaxiPage() {
         ]
     };
 
-    // Check if user is in valid location based on direction
-    useEffect(() => {
-        if (!manualLocationMode) {
-            // 처음 페이지 로드 시에도 바로 위치를 확인하지 않고 안내 메시지만 표시
-            setIsCheckingLocation(false);
-            if (direction === 'fromMJUtoGH') {
-                setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
-            } else {
-                setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
-            }
-            setIsInValidLocation(false);
-        }
-        // 자동 위치 확인을 하지 않음 - 사용자가 버튼을 눌렀을 때만 위치 확인
-    }, [direction, manualLocationMode, bounds.gh, bounds.mju]);
-
     // 위치 확인 함수 (사용자 액션에 의해서만 호출됨)
-    const checkLocation = () => {
+    const checkLocation = useCallback(() => {
         setIsCheckingLocation(true);
         setLocationError(null);
         
@@ -73,6 +65,9 @@ export default function TaxiPage() {
                     latitude <= boundsToCheck[2] && 
                     longitude <= boundsToCheck[3];
                 
+                console.log('isInBounds:', isInBounds);
+                console.log('Setting isInValidLocation to:', isInBounds);
+                
                 setIsInValidLocation(isInBounds);
                 setIsCheckingLocation(false);
                 
@@ -84,6 +79,8 @@ export default function TaxiPage() {
                     }
                 } else {
                     setLocationError(null);
+                    // 위치가 유효할 때 명시적으로 에러를 null로 설정
+                    console.log('Location verified successfully. isInValidLocation:', isInBounds);
                 }
             },
             (error) => {
@@ -111,7 +108,16 @@ export default function TaxiPage() {
                 maximumAge: 60000 // 캐시된 위치 사용 허용 시간 늘림
             }
         );
-    };
+    }, [direction, bounds.mju, bounds.gh]);
+
+    // Check if user is in valid location based on direction
+    useEffect(() => {
+        // 초기 마운트 시에만 위치 확인 실행
+        if (!initialCheckDone.current && !manualLocationMode) {
+            checkLocation();
+            initialCheckDone.current = true;
+        }
+    }, [manualLocationMode, checkLocation]);
 
     const handleJoinGroup = async () => {
         try {
@@ -249,18 +255,21 @@ export default function TaxiPage() {
 
     const handleDestinationChange = (newDestination: '명지대' | '기흥역') => {
         setDirection(newDestination === '기흥역' ? 'fromMJUtoGH' : 'fromGHtoMJU');
-        // 방향 변경 시 자동으로 위치 체크를 하지 않고, 사용자가 직접 버튼을 눌러야 함
-        if (newDestination === '기흥역') {
-            setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
-        } else {
-            setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+        // 방향 변경 시 위치 확인을 하지 않고 안내 메시지만 표시
+        if (!manualLocationMode) {
+            setIsCheckingLocation(false);
+            if (newDestination === '기흥역') {
+                setLocationError('명지대학교 내에서만 기흥역 방향 택시 모집이 가능합니다.');
+            } else {
+                setLocationError('기흥역 근처에서만 명지대 방향 택시 모집이 가능합니다.');
+            }
+            setIsInValidLocation(false);
         }
-        setIsInValidLocation(false);
-        setIsCheckingLocation(false);
     };
 
     const checkLocationAgain = () => {
         setManualLocationMode(false);
+        // 명시적으로 위치 확인 함수 호출
         checkLocation();
     };
 
@@ -353,6 +362,15 @@ export default function TaxiPage() {
                                         수동으로 위치 설정하기
                                     </button>
                                 </div>
+                            </div>
+                        ) : isInValidLocation ? (
+                            <div className={styles.locationSuccess}>
+                                <p>위치가 검증되었습니다</p>
+                                <p className={styles.locationSubtext}>
+                                    {direction === 'fromMJUtoGH' 
+                                        ? '명지대학교 내에서 기흥역 방향 택시 모집이 가능합니다.' 
+                                        : '기흥역 근처에서 명지대 방향 택시 모집이 가능합니다.'}
+                                </p>
                             </div>
                         ) : null}
 
