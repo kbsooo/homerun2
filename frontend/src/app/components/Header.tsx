@@ -167,7 +167,8 @@ export default function Header() {
               <button 
                 className={styles.menuItem}
                 onClick={() => {
-                  alert('개발중입니다. 조금만 기다려주세요!');
+                  // alert('개발중입니다. 조금만 기다려주세요!');
+                  window.location.href = '/taxi';
                 }}
               >
                 택시 모집
