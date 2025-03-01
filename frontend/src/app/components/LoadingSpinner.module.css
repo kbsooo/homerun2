@@ -6,45 +6,119 @@
     min-height: 200px;
     padding: 2rem;
     width: 100%;
+    z-index: 1000;
+}
+
+/* 모달 형태를 위한 스타일 */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    backdrop-filter: blur(3px);
+}
+
+.modalContainer {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);
+    width: 280px;
+    min-height: 180px;
+    padding: 1.5rem;
+}
+
+:global(.darkMode) .modalContainer {
+    background-color: #1e1e1e;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
 }
 
 .loadingAnimation {
-    display: flex;
-    gap: 6px;
+    position: relative;
+    width: 200px;
+    height: 80px;
     margin-bottom: 1.5rem;
+    overflow: hidden;
 }
 
-.square {
-    width: 12px;
-    height: 12px;
-    background-color: var(--theme-color, #2563eb);
-    border-radius: 3px;
+/* 택시 애니메이션을 위한 스타일 */
+.road {
+    position: absolute;
+    width: 100%;
+    height: 8px;
+    background-color: #e5e7eb;
+    bottom: 20px;
+    border-radius: 4px;
+}
+
+:global(.darkMode) .road {
+    background-color: #333;
+}
+
+.roadLine {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        #9ca3af 10px,
+        #9ca3af 20px
+    );
+    animation: moveRoad 1.5s linear infinite;
+}
+
+:global(.darkMode) .roadLine {
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        #6b7280 10px,
+        #6b7280 20px
+    );
+}
+
+.taxi {
+    position: absolute;
+    bottom: 28px;
+    left: 10px;
+    color: var(--theme-color, #fabe00);
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+    animation: moveTaxi 3s ease-in-out infinite;
     transform-origin: center;
-    will-change: transform;
 }
 
-.square:nth-child(1) {
-    animation: bounce 1.2s ease-in-out infinite;
-}
-
-.square:nth-child(2) {
-    animation: bounce 1.2s ease-in-out infinite 0.15s;
-}
-
-.square:nth-child(3) {
-    animation: bounce 1.2s ease-in-out infinite 0.3s;
-}
-
-.square:nth-child(4) {
-    animation: bounce 1.2s ease-in-out infinite 0.45s;
-}
-
-@keyframes bounce {
-    0%, 100% {
-        transform: translateY(0);
+@keyframes moveTaxi {
+    0%, 10% {
+        transform: translateX(0) scale(1);
+    }
+    15% {
+        transform: translateX(0) scale(1.05);
     }
     50% {
-        transform: translateY(-15px);
+        transform: translateX(160px) scale(1);
+    }
+    85% {
+        transform: translateX(0) scale(1.05);
+    }
+    90%, 100% {
+        transform: translateX(0) scale(1);
+    }
+}
+
+@keyframes moveRoad {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -40px 0;
     }
 }
 
@@ -60,7 +134,20 @@
     color: #e2e8f0;
 }
 
-:global(.darkMode) .square {
-    background-color: var(--theme-color, #3b82f6);
-    opacity: 0.9;
+/* Yellow Theme */
+:global(.yellowTheme) .taxi {
+    color: #fabe00;
+}
+
+/* Blue Theme */
+:global(.blueTheme) .taxi {
+    color: #3b82f6;
+}
+
+:global(.darkMode.yellowTheme) .taxi {
+    color: #fabe00;
+}
+
+:global(.darkMode.blueTheme) .taxi {
+    color: #3b82f6;
 }

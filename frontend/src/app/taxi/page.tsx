@@ -284,131 +284,128 @@ export default function TaxiPage() {
         <div className={styles.pageWrapper}>
             <Header />
             <main className={styles.container}>
-                {isLoading ? (
-                    <LoadingSpinner message={loadingMessage} />
-                ) : (
-                    <>
-                        <div className={styles.introSection}>
-                            <h1 className={styles.pageTitle}>
-                                <span style={{display: 'flex', alignItems: 'center'}}>
-                                    <FaTaxi size={20} color="#3498db" />
-                                    <span style={{marginLeft: '8px'}}>택시 그룹 모집</span>
-                                </span>
-                            </h1>
-                            <p className={styles.introText}>
-                                버스를 놓쳤거나 급하게 학교로 가야 할 때<br />
-                                택시 그룹을 모집해 보세요!
+                {isLoading && (
+                    <LoadingSpinner message={loadingMessage} isModal={true} />
+                )}
+                <div className={styles.introSection}>
+                    <h1 className={styles.pageTitle}>
+                        <span style={{display: 'flex', alignItems: 'center'}}>
+                            <FaTaxi size={20} color="#3498db" />
+                            <span style={{marginLeft: '8px'}}>택시 그룹 모집</span>
+                        </span>
+                    </h1>
+                    <p className={styles.introText}>
+                        버스를 놓쳤거나 급하게 학교로 가야 할 때<br />
+                        택시 그룹을 모집해 보세요!
+                    </p>
+                </div>
+
+                <div className={styles.toggleContainer}>
+                    <button
+                        className={`${styles.toggleButton} ${taxiDestination === '명지대' ? styles.active : ''}`}
+                        onClick={() => handleDestinationChange('명지대')}
+                    >
+                        명지대행
+                    </button>
+                    <button
+                        className={`${styles.toggleButton} ${taxiDestination === '기흥역' ? styles.active : ''}`}
+                        onClick={() => handleDestinationChange('기흥역')}
+                    >
+                        기흥역행
+                    </button>
+                </div>
+
+                <div className={styles.locationSection}>
+                    {manualLocationMode ? (
+                        <div className={styles.locationConfirm}>
+                            <div className={styles.locationHeader}>
+                                <FaMapMarkerAlt size={20} color="#27ae60" />
+                                <h2>수동 위치 모드 활성화됨</h2>
+                            </div>
+                            <p className={styles.locationSubtext}>
+                                {direction === 'fromMJUtoGH' 
+                                    ? '명지대학교에 있음을 확인합니다.' 
+                                    : '기흥역 근처에 있음을 확인합니다.'}
+                            </p>
+                            <button 
+                                className={styles.checkLocationButton} 
+                                onClick={() => {
+                                    setManualLocationMode(false);
+                                    checkLocationAgain();
+                                }}
+                            >
+                                자동 위치 확인으로 전환
+                            </button>
+                        </div>
+                    ) : isCheckingLocation ? (
+                        <div className={styles.locationMessage}>
+                            <div className={styles.pulsingDot}></div>
+                            위치 확인 중입니다...
+                        </div>
+                    ) : locationError ? (
+                        <div className={styles.locationError}>
+                            <div className={styles.locationHeader}>
+                                <FaMapMarkerAlt size={20} color="#e74c3c" />
+                                <h2>위치 오류</h2>
+                            </div>
+                            <p>{locationError}</p>
+                            {/* 방향에 따라 적절한 이미지를 표시합니다 */}
+                            <div className={styles.boundsImageContainer}>
+                                {direction === 'fromMJUtoGH' ? (
+                                    <Image 
+                                        src="/taxi/mjuBounds.png" 
+                                        alt="명지대 위치 범위" 
+                                        width={300} 
+                                        height={200}
+                                        className={styles.boundsImage}
+                                    />
+                                ) : (
+                                    <Image 
+                                        src="/taxi/ghBounds.png" 
+                                        alt="기흥역 위치 범위" 
+                                        width={300} 
+                                        height={200}
+                                        className={styles.boundsImage}
+                                    />
+                                )}
+                            </div>
+                            <div className={styles.locationButtonGroup}>
+                                <button 
+                                    className={styles.checkLocationButton} 
+                                    onClick={checkLocationAgain}
+                                >
+                                    위치 다시 확인하기
+                                </button>
+                                <button 
+                                    className={styles.manualLocationButton} 
+                                    onClick={enableManualLocationMode}
+                                >
+                                    수동으로 위치 설정하기
+                                </button>
+                            </div>
+                        </div>
+                    ) : isInValidLocation ? (
+                        <div className={styles.locationSuccess}>
+                            <div className={styles.locationHeader}>
+                                <FaMapMarkerAlt size={20} color="#27ae60" />
+                                <h2>위치가 검증되었습니다</h2>
+                            </div>
+                            <p className={styles.locationSubtext}>
+                                {direction === 'fromMJUtoGH' 
+                                    ? '명지대학교 내에서 기흥역 방향 택시 모집이 가능합니다.' 
+                                    : '기흥역 근처에서 명지대 방향 택시 모집이 가능합니다.'}
                             </p>
                         </div>
+                    ) : null}
+                </div>
 
-                        <div className={styles.toggleContainer}>
-                            <button
-                                className={`${styles.toggleButton} ${taxiDestination === '명지대' ? styles.active : ''}`}
-                                onClick={() => handleDestinationChange('명지대')}
-                            >
-                                명지대행
-                            </button>
-                            <button
-                                className={`${styles.toggleButton} ${taxiDestination === '기흥역' ? styles.active : ''}`}
-                                onClick={() => handleDestinationChange('기흥역')}
-                            >
-                                기흥역행
-                            </button>
-                        </div>
-
-                        <div className={styles.locationSection}>
-                            {manualLocationMode ? (
-                                <div className={styles.locationConfirm}>
-                                    <div className={styles.locationHeader}>
-                                        <FaMapMarkerAlt size={20} color="#27ae60" />
-                                        <h2>수동 위치 모드 활성화됨</h2>
-                                    </div>
-                                    <p className={styles.locationSubtext}>
-                                        {direction === 'fromMJUtoGH' 
-                                            ? '명지대학교에 있음을 확인합니다.' 
-                                            : '기흥역 근처에 있음을 확인합니다.'}
-                                    </p>
-                                    <button 
-                                        className={styles.checkLocationButton} 
-                                        onClick={() => {
-                                            setManualLocationMode(false);
-                                            checkLocationAgain();
-                                        }}
-                                    >
-                                        자동 위치 확인으로 전환
-                                    </button>
-                                </div>
-                            ) : isCheckingLocation ? (
-                                <div className={styles.locationMessage}>
-                                    <div className={styles.pulsingDot}></div>
-                                    위치 확인 중입니다...
-                                </div>
-                            ) : locationError ? (
-                                <div className={styles.locationError}>
-                                    <div className={styles.locationHeader}>
-                                        <FaMapMarkerAlt size={20} color="#e74c3c" />
-                                        <h2>위치 오류</h2>
-                                    </div>
-                                    <p>{locationError}</p>
-                                    {/* 방향에 따라 적절한 이미지를 표시합니다 */}
-                                    <div className={styles.boundsImageContainer}>
-                                        {direction === 'fromMJUtoGH' ? (
-                                            <Image 
-                                                src="/taxi/mjuBounds.png" 
-                                                alt="명지대 위치 범위" 
-                                                width={300} 
-                                                height={200}
-                                                className={styles.boundsImage}
-                                            />
-                                        ) : (
-                                            <Image 
-                                                src="/taxi/ghBounds.png" 
-                                                alt="기흥역 위치 범위" 
-                                                width={300} 
-                                                height={200}
-                                                className={styles.boundsImage}
-                                            />
-                                        )}
-                                    </div>
-                                    <div className={styles.locationButtonGroup}>
-                                        <button 
-                                            className={styles.checkLocationButton} 
-                                            onClick={checkLocationAgain}
-                                        >
-                                            위치 다시 확인하기
-                                        </button>
-                                        <button 
-                                            className={styles.manualLocationButton} 
-                                            onClick={enableManualLocationMode}
-                                        >
-                                            수동으로 위치 설정하기
-                                        </button>
-                                    </div>
-                                </div>
-                            ) : isInValidLocation ? (
-                                <div className={styles.locationSuccess}>
-                                    <div className={styles.locationHeader}>
-                                        <FaMapMarkerAlt size={20} color="#27ae60" />
-                                        <h2>위치가 검증되었습니다</h2>
-                                    </div>
-                                    <p className={styles.locationSubtext}>
-                                        {direction === 'fromMJUtoGH' 
-                                            ? '명지대학교 내에서 기흥역 방향 택시 모집이 가능합니다.' 
-                                            : '기흥역 근처에서 명지대 방향 택시 모집이 가능합니다.'}
-                                    </p>
-                                </div>
-                            ) : null}
-                        </div>
-
-                        <button 
-                            className={`${styles.joinButton} ${(!isInValidLocation && !manualLocationMode) || isCheckingLocation ? styles.disabled : ''}`} 
-                            onClick={handleJoinGroup}
-                            disabled={(!isInValidLocation && !manualLocationMode) || isCheckingLocation}
-                        >
-                            <FaTaxi size={18} color="#fff" /> <span>택시 그룹 모집하기</span>
-                        </button>
-                    </>
-                )}
+                <button 
+                    className={`${styles.joinButton} ${(!isInValidLocation && !manualLocationMode) || isCheckingLocation ? styles.disabled : ''}`} 
+                    onClick={handleJoinGroup}
+                    disabled={(!isInValidLocation && !manualLocationMode) || isCheckingLocation}
+                >
+                    <FaTaxi size={18} color="#fff" /> <span>택시 그룹 모집하기</span>
+                </button>
             </main>
             <Footer />
         </div>
