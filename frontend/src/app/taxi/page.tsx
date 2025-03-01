@@ -31,11 +31,10 @@ export default function TaxiPage() {
     // Bounds configuration for different locations
     const bounds = {
         mju: [
-            // 테스트를 위해 사용자의 현재 위치가 포함되도록 범위 설정
-            35.0, // minLat
-            129.0, // minLng
-            36.0, // maxLat
-            130.0  // maxLng
+            37.224134,
+            127.187080,
+            37.223561,
+            127.188542
         ],
         gh: [
             37.275036,  // minLat
