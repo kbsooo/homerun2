@@ -7,6 +7,7 @@ import styles from './Header.module.css';
 import { useThemeContext } from '../context/ThemeContext';
 import { usePathname } from 'next/navigation';
 import { useChat } from '../context/ChatContext';
+import Image from 'next/image';
 
 interface UserInfo {
   nickname: string;
@@ -17,7 +18,7 @@ export default function Header() {
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const { darkMode, toggleDarkMode } = useThemeContext();
+  const { darkMode, toggleDarkMode, direction } = useThemeContext();
   const pathname = usePathname();
   const { setMinimizedChatId, setIsMinimized } = useChat();
 
@@ -150,14 +151,37 @@ export default function Header() {
     }
   };
 
+  // 로고 이미지 선택 로직
+  const getLogoImage = () => {
+    if (darkMode) {
+      return direction === 'fromMJUtoGH' ? '/logo/darkGH.png' : '/logo/darkMJU.png';
+    } else {
+      return direction === 'fromMJUtoGH' ? '/logo/lightGH.png' : '/logo/lightMJU.png';
+    }
+  };
+
   return (
     <header className={styles.header}>
       <nav className={styles.nav}>
         <div className={styles.logo}>
           <Link href='/' className={styles.logoLink} onClick={handleLogoClick}>
             <div className={styles.logoContent}>
-              <span className={styles.logoText}>HOMERUN</span>
-              <span className={styles.betaLabel}>beta</span>
+              <div id="logoWrapper" className={styles.logoImageWrapper}>
+                <Image
+                  src={getLogoImage()}
+                  alt="HOMERUN Logo"
+                  width={130}
+                  height={40}
+                  className={styles.logoImage}
+                  style={{ 
+                    borderRadius: '8px',
+                    WebkitBorderRadius: '8px',
+                    MozBorderRadius: '8px',
+                    overflow: 'hidden'
+                  }}
+                  priority
+                />
+              </div>
             </div>
           </Link>
         </div>

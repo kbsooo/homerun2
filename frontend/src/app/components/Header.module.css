@@ -59,9 +59,75 @@
 
 .logoContent {
   display: flex;
-  flex-direction: column;
   align-items: center;
+  justify-content: center;
   line-height: 1;
+}
+
+/* 모바일에서 border-radius가 강제 적용되도록 사용할 전역 스타일 */
+.logoImageWrapper #logoWrapper {
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+}
+
+.logoImageWrapper span {
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.logoImageWrapper img {
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+}
+
+.logoImageWrapper {
+  overflow: hidden !important;
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+  display: inline-block;
+  transform: translateZ(0);
+  -webkit-mask-image: -webkit-radial-gradient(white, black);
+}
+
+.logoImage {
+  object-fit: contain;
+  transition: transform 0.2s ease;
+  display: block;
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+}
+
+.logoImage img {
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+}
+
+/* Next.js Image 컴포넌트가 생성하는 모든 span과 img에 적용 */
+.logoImageWrapper > span,
+.logoImageWrapper > span > img {
+  border-radius: 8px !important;
+  -webkit-border-radius: 8px !important;
+  -moz-border-radius: 8px !important;
+  -ms-border-radius: 8px !important;
+  overflow: hidden !important;
+}
+
+.logoLink:hover .logoImage {
+  transform: scale(1.05);
 }
 
 .logoText {
@@ -272,6 +338,18 @@
     font-size: 1rem;
   }
   
+  .logoImageWrapper {
+    border-radius: 8px !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+  }
+  
+  .logoImage {
+    width: 140px;
+    height: 42px;
+  }
+  
   .logoText {
     font-size: 1.4rem;
   }
@@ -331,6 +409,18 @@
     transform: translateY(0);
   }
   
+  .logoImageWrapper {
+    border-radius: 8px !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+  }
+  
+  .logoImage {
+    width: 130px;
+    height: 40px;
+  }
+  
   .logoText {
     font-size: 1.2rem;
   }
@@ -338,5 +428,55 @@
   .betaLabel {
     font-size: 0.5rem;
     margin-top: -2px;
+  }
+}
+
+/* 특별히 작은 모바일 화면 (390px 이하)에 대한 스타일 */
+@media (max-width: 390px) {
+  .logoImageWrapper #logoWrapper,
+  .logoImageWrapper span,
+  .logoImageWrapper img {
+    border-radius: 8px !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  .logoImageWrapper {
+    border-radius: 8px !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+    overflow: hidden !important;
+  }
+  
+  .logoImage {
+    width: 160px;
+    height: 48px;
+    border-radius: 8px !important;
+    -webkit-border-radius: 8px !important;
+    -moz-border-radius: 8px !important;
+    -ms-border-radius: 8px !important;
+  }
+  
+  .nav {
+    padding: 0.75rem 0.5rem;
+  }
+  
+  .menu {
+    gap: 0.25rem;
+  }
+  
+  .menuItem {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+    min-width: auto;
+  }
+  
+  .toggleButton {
+    padding: 0.2rem;
+    width: 1.4rem;
+    height: 1.4rem;
   }
 }

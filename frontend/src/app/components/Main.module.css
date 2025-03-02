@@ -382,6 +382,94 @@
   font-size: 0.875rem;
 }
 
+/* 탑승했어요 버튼 스타일 */
+.boardingButton {
+  background-color: var(--theme-color);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.boardingButton:hover {
+  background-color: var(--theme-hover);
+}
+
+.boardingButton:active {
+  background-color: var(--theme-active);
+}
+
+.boardingButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* 피드백 메시지 스타일 */
+.feedbackMessage {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.successFeedback {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.errorFeedback {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 다크모드 지원 */
+.darkMode .boardingButton {
+  background-color: var(--theme-color);
+}
+
+.darkMode .boardingButton:hover {
+  background-color: var(--theme-hover);
+}
+
+.darkMode .boardingButton:active {
+  background-color: var(--theme-active);
+}
+
+.darkMode .boardingButton:disabled {
+  background-color: #4b5563;
+}
+
+.darkMode .successFeedback {
+  background-color: #064e3b;
+  color: #d1fae5;
+  border-color: #059669;
+}
+
+.darkMode .errorFeedback {
+  background-color: #7f1d1d;
+  color: #fee2e2;
+  border-color: #b91c1c;
+}
+
 .error {
   background-color: #fee2e2;
   border: 1px solid #ef4444;
