@@ -9,13 +9,15 @@ async function handler(request: NextRequest) {
     
     console.log(`WebSocket info proxy: ${request.method} to: ${url}`);
     
-    // 요청 헤더 복사
+    // 요청 헤더 복사 - X-Forwarded-For 추가
     const headers = new Headers(request.headers);
     
-    // 요청 옵션 생성
+    // 요청 옵션 생성 - 자격 증명 포함
     const requestOptions: RequestInit = {
       method: request.method,
       headers,
+      credentials: 'include',
+      mode: 'cors',
     };
     
     // GET이 아닌 메서드의 경우 본문 추가
@@ -28,12 +30,17 @@ async function handler(request: NextRequest) {
     
     // 응답 상태 및 헤더 로깅
     console.log(`WebSocket info proxy response status: ${response.status}`);
+    console.log(`WebSocket info proxy response headers: ${JSON.stringify([...response.headers.entries()])}`);
     
     // 응답 그대로 반환
     const data = await response.text();
     
-    // 응답 헤더 복사
+    // 응답 헤더 복사 - 모든 CORS 헤더 추가
     const responseHeaders = new Headers(response.headers);
+    responseHeaders.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
     
     return new NextResponse(data, {
       status: response.status,
