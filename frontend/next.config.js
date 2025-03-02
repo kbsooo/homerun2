@@ -4,8 +4,12 @@ const nextConfig = {
   async rewrites() {
     return [
       {
+        source: "/ws",
+        destination: "/app/ws",
+      },
+      {
         source: "/ws/:path*",
-        destination: "/api/proxy/ws/:path*",
+        destination: "/app/ws/:path*",
       },
       {
         source: "/api/taxi/:path*",

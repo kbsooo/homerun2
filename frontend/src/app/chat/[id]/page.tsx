@@ -64,7 +64,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     webSocketFactory: () => {
                         try {
                             // SockJS를 통한 연결. 이것은 웹소켓 폴백도 지원함
-                            const socket = new SockJS(wsUrl);
+                            const socket = new SockJS(wsUrl, null, {
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+                                // 디버깅을 위한 로그 활성화
+                                // debug: true // 타입 정의에서 지원하지 않는 옵션
+                            });
                             console.log('SockJS connection created:', socket);
                             return socket;
                         } catch (error) {
@@ -84,13 +88,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         
                         // 구독
                         client?.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
-                            const newMsg = JSON.parse(message.body);
-                            setMessages(prev => [...prev, newMsg]);
+                            try {
+                                const newMsg = JSON.parse(message.body);
+                                console.log('Received chat message:', newMsg);
+                                setMessages(prev => [...prev, newMsg]);
+                            } catch (error) {
+                                console.error('Error parsing message:', error, message.body);
+                            }
                         });
                         
                         client?.subscribe(`/topic/group/${resolvedParams.id}`, (message) => {
-                            const updatedGroup = JSON.parse(message.body);
-                            setGroup(updatedGroup);
+                            try {
+                                const updatedGroup = JSON.parse(message.body);
+                                console.log('Received group update:', updatedGroup);
+                                setGroup(updatedGroup);
+                            } catch (error) {
+                                console.error('Error parsing group update:', error, message.body);
+                            }
                         });
                     },
                     onStompError: (frame) => {

@@ -244,35 +244,68 @@ export default function TaxiPage() {
 
     const checkGroupStatus = async (groupId: string) => {
         try {
+            console.log(`Checking group status for groupId: ${groupId}`);
             // API 호출 경로 설정 (상대 경로 사용)
             const response = await fetch(`/api/taxi/group/${groupId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
                     'Accept': 'application/json'
                 },
-                credentials: 'include' // 쿠키 포함
+                credentials: 'include', // 쿠키 포함
+                cache: 'no-store' // 캐시 사용 안함
             });
             
             if (response.ok) {
-                const groupStatus = await response.json();
-                handleGroupComplete(groupId, groupStatus);
+                const responseText = await response.text();
+                console.log(`Group status response: ${responseText}`);
+                
+                try {
+                    const groupStatus = JSON.parse(responseText);
+                    console.log(`Parsed group status:`, groupStatus);
+                    handleGroupComplete(groupId, groupStatus);
+                } catch (parseError) {
+                    console.error('Error parsing group status:', parseError);
+                    setIsLoading(false);
+                    alert('그룹 상태 확인 중 오류가 발생했습니다.');
+                }
+            } else {
+                console.error(`Error checking group status: ${response.status} ${response.statusText}`);
+                setIsLoading(false);
+                alert('그룹 상태 확인 중 오류가 발생했습니다.');
             }
         } catch (error) {
             console.error('Error checking group status:', error);
             setIsLoading(false);
+            alert('그룹 상태 확인 중 오류가 발생했습니다.');
         }
     };
 
     const handleGroupComplete = (groupId: string, groupStatus: { status: string; memberCount: number }) => {
+        console.log(`Handling group completion for groupId: ${groupId}, status: ${groupStatus.status}`);
         setIsLoading(false);
         
         if (groupStatus.status === 'COMPLETE') {
+            console.log(`Group completed. Redirecting to chat room: /chat/${groupId}`);
             router.push(`/chat/${groupId}`);
         } else if (groupStatus.status === 'PARTIAL') {
+            console.log(`Group partially completed. Redirecting to chat room: /chat/${groupId}`);
             alert(`${groupStatus.memberCount}명이 모였습니다. 적은 인원으로 채팅방을 개설합니다.`);
-            router.push(`/chat/${groupId}`);
+            setTimeout(() => {
+                router.push(`/chat/${groupId}`);
+            }, 500);
         } else if (groupStatus.status === 'FAILED') {
+            console.log('Group recruitment failed.');
             alert('모집에 실패했습니다.');
+            router.push('/taxi');
+        } else if (groupStatus.status === 'WAITING') {
+            console.log('Group is still waiting. Checking again in 3 seconds.');
+            // 아직 대기 중이면 3초 후 다시 확인
+            setTimeout(() => {
+                checkGroupStatus(groupId);
+            }, 3000);
+        } else {
+            console.log(`Unknown group status: ${groupStatus.status}`);
+            alert('알 수 없는 그룹 상태입니다.');
             router.push('/taxi');
         }
     };
