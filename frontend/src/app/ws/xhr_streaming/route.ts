@@ -8,19 +8,26 @@ async function handler(request: NextRequest) {
     const url = `${backendUrl}/ws/xhr_streaming${request.nextUrl.search}`;
     
     console.log(`WebSocket xhr_streaming proxy: ${request.method} to: ${url}`);
+    console.log(`WebSocket xhr_streaming request headers:`, Object.fromEntries([...request.headers.entries()]));
     
-    // 요청 헤더 복사
+    // 요청 헤더 복사 및 필요에 따라 추가
     const headers = new Headers(request.headers);
+    headers.set('Origin', backendUrl);
     
-    // 요청 옵션 생성
+    // 요청 옵션 생성 - 자격 증명 포함
     const requestOptions: RequestInit = {
       method: request.method,
       headers,
+      credentials: 'include',
+      mode: 'cors',
+      keepalive: true,
     };
     
     // GET이 아닌 메서드의 경우 본문 추가
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      requestOptions.body = await request.text();
+      const body = await request.text();
+      console.log(`WebSocket xhr_streaming request body: ${body}`);
+      requestOptions.body = body;
     }
     
     // 요청 전송
@@ -28,12 +35,19 @@ async function handler(request: NextRequest) {
     
     // 응답 상태 및 헤더 로깅
     console.log(`WebSocket xhr_streaming proxy response status: ${response.status}`);
+    console.log(`WebSocket xhr_streaming proxy response headers: ${JSON.stringify(Object.fromEntries([...response.headers.entries()]))}`);
     
     // 응답 그대로 반환
     const data = await response.text();
+    console.log(`WebSocket xhr_streaming proxy response data (first 100 chars): ${data.substring(0, 100)}...`);
     
-    // 응답 헤더 복사
+    // 응답 헤더 복사 및 CORS 헤더 추가
     const responseHeaders = new Headers(response.headers);
+    responseHeaders.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    responseHeaders.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
+    responseHeaders.delete('X-Frame-Options'); // iframe 문제 해결
     
     return new NextResponse(data, {
       status: response.status,

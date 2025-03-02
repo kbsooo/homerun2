@@ -63,11 +63,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            // SockJS를 통한 연결. 이것은 웹소켓 폴백도 지원함
+                            // SockJS를 통한 연결 - 폴백 메커니즘 제한
                             const socket = new SockJS(wsUrl, null, {
-                                transports: ['websocket', 'xhr-streaming', 'xhr-polling', 'xdr-streaming', 'xdr-polling', 'iframe-eventsource', 'iframe-htmlfile', 'jsonp-polling'],
-                                // 디버깅을 위한 로그 활성화
-                                // debug: true // 타입 정의에서 지원하지 않는 옵션
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'], // iframe과 jsonp 메커니즘 제외
+                                timeout: 10000, // 타임아웃 증가
+                                server: '127', // 서버 ID 명시적 지정
                             });
                             console.log('SockJS connection created:', socket);
                             return socket;
@@ -157,7 +157,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                             reconnectAttempts++;
                         }
                     },
-                    debug: (str) => {
+                    debug: function(str) {
                         console.log('STOMP debug:', str);
                     }
                 });

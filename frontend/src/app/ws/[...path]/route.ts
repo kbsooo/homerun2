@@ -14,9 +14,11 @@ async function handler(
     const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
     
     console.log(`WebSocket dynamic proxy: ${request.method} to: ${url}`);
+    console.log(`WebSocket dynamic proxy request headers:`, Object.fromEntries([...request.headers.entries()]));
     
-    // 요청 헤더 복사
+    // 요청 헤더 복사 및 필요에 따라 추가
     const headers = new Headers(request.headers);
+    headers.set('Origin', backendUrl);
     
     // 요청 옵션 생성 - 자격 증명 포함
     const requestOptions: RequestInit = {
@@ -24,11 +26,14 @@ async function handler(
       headers,
       credentials: 'include',
       mode: 'cors',
+      keepalive: true,
     };
     
     // GET이 아닌 메서드의 경우 본문 추가
     if (request.method !== 'GET' && request.method !== 'HEAD') {
-      requestOptions.body = await request.text();
+      const body = await request.text();
+      console.log(`WebSocket dynamic proxy request body: ${body}`);
+      requestOptions.body = body;
     }
     
     // 요청 전송
@@ -36,17 +41,28 @@ async function handler(
     
     // 응답 상태 및 헤더 로깅
     console.log(`WebSocket dynamic proxy response status: ${response.status}`);
-    console.log(`WebSocket dynamic proxy response headers: ${JSON.stringify([...response.headers.entries()])}`);
+    console.log(`WebSocket dynamic proxy response headers: ${JSON.stringify(Object.fromEntries([...response.headers.entries()]))}`);
     
     // 응답 그대로 반환
     const data = await response.text();
+    console.log(`WebSocket dynamic proxy response data (first 100 chars): ${data.substring(0, 100)}...`);
     
-    // 응답 헤더 복사 - 모든 CORS 헤더 추가
+    // 응답 헤더 복사 및 CORS 헤더 추가
     const responseHeaders = new Headers(response.headers);
     responseHeaders.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
     responseHeaders.set('Access-Control-Allow-Credentials', 'true');
-    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
     responseHeaders.set('Access-Control-Allow-Headers', 'X-Requested-With, Content-Type, Authorization');
+    responseHeaders.delete('X-Frame-Options'); // iframe 문제 해결
+    
+    // 405 오류 처리 - 허용되지 않은 메서드인 경우 OPTIONS를 허용
+    if (response.status === 405) {
+      console.log('Handling 405 Method Not Allowed error');
+      return new NextResponse(null, {
+        status: 200,
+        headers: responseHeaders
+      });
+    }
     
     return new NextResponse(data, {
       status: response.status,
