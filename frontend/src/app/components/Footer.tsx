@@ -19,39 +19,49 @@ export default function Footer() {
     <footer className={styles.footer}>
       <div className={styles.container}>
         <div className={styles.content}>
-          <div className={styles.credits}>
-            <span>Based on </span>
-            <Link
-              href="https://github.com/ijodea/homerun"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.link}
-            >
-              ijodea/homerun
-            </Link>
-            <span>, Remade by </span>
-            <Link
-              href="https://github.com/kbsooo"
-              target="_blank"
-              rel="noopener noreferrer"
-              className={styles.link}
-            >
-              KBSOO
-            </Link>
-            <span> · </span>
+          <div className={styles.mainFooter}>
+            <div className={styles.copyrightContainer}>
+              <div className={styles.copyright}>
+                © {currentYear} <Link
+                  href="https://github.com/kbsooo"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.link}
+                >
+                  KBSOO
+                </Link>. All rights reserved.
+              </div>
+              
+              <div className={styles.attribution}>
+                <Link
+                  href="https://github.com/kbsooo/homerun2"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.attributionLink}
+                >
+                  this project
+                </Link> is based on <Link
+                  href="https://github.com/ijodea/homerun"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.attributionLink}
+                >
+                  ijodea/homerun
+                </Link>
+              </div>
+            </div>
+
             <span 
               onClick={openModal}
-              className={styles.link}
+              className={styles.feedbackLink}
               role="button"
               tabIndex={0}
               onKeyDown={(e) => e.key === 'Enter' && openModal()}
+              aria-label="피드백 보내기"
             >
               피드백
             </span>
           </div>
-        </div>
-        <div className={styles.copyright}>
-          © {currentYear} KBSOO. All rights reserved.
         </div>
       </div>
       
