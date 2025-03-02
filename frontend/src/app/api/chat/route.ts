@@ -23,15 +23,13 @@ export async function GET(request: Request) {
 
   try {
     console.log('Fetching chat histories with token:', token);
-    const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://homerun2.vercel.app';
     
     const response = await fetch(`/api/chat/histories`, {
       method: 'GET',
       headers: {
         'Authorization': token,
         'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Origin': frontendUrl
+        'Accept': 'application/json'
       },
       cache: 'no-store',
       next: { revalidate: 0 }

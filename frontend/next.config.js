@@ -30,8 +30,7 @@ const nextConfig = {
     ];
   },
   env: {
-    NEXT_PUBLIC_FRONTEND_URL:
-      process.env.NEXT_PUBLIC_FRONTEND_URL || "https://homerun2.vercel.app",
+    NEXT_PUBLIC_FRONTEND_URL: "",
     NEXT_PUBLIC_BACKEND_URL:
       process.env.NEXT_PUBLIC_BACKEND_URL || "//3.27.108.105:8080",
     NEXT_PUBLIC_API_URL:

@@ -129,8 +129,7 @@ export default function MyPage() {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': 'https://homerun2.vercel.app'
+          'Accept': 'application/json'
         },
         credentials: 'include'
       });
