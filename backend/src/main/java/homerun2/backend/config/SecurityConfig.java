@@ -16,10 +16,10 @@ import java.util.Arrays;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    @Value("${frontend.url:http://localhost:3000}")
+    @Value("${frontend.url:https://homerun2.vercel.app}")
     private String frontendUrl;
 
-    @Value("${backend.url:http://localhost:8080}")
+    @Value("${backend.url:http://3.27.108.105:8080}")
     private String backendUrl;
 
     @Bean

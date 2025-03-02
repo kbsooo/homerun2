@@ -19,7 +19,7 @@ export default function MyPage() {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
-  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080');
+  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080');
 
   const fetchChatHistories = useCallback(async () => {
     try {
@@ -131,7 +131,7 @@ export default function MyPage() {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'Origin': 'http://localhost:3000'
+          'Origin': 'https://homerun2.vercel.app'
         },
         credentials: 'include'
       });

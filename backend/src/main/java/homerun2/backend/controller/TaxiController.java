@@ -16,7 +16,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/taxi")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://homerun2.vercel.app")
 public class TaxiController {
     private final TaxiGroupService taxiGroupService;
     private final TaxiChatService taxiChatService;

@@ -37,7 +37,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     const [stompClient, setStompClient] = useState<Client | null>(null);
     const [connectionStatus, setConnectionStatus] = useState('연결 중...');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { theme, darkMode, toggleDarkMode } = useThemeContext();
+    // const { theme, darkMode, toggleDarkMode } = useThemeContext();
+    const { theme, darkMode } = useThemeContext();
     const router = useRouter();
 
     const scrollToBottom = () => {
@@ -55,7 +56,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const initializeWebSocket = () => {
             try {
                 // 백엔드 서버 URL 설정
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
                 const wsUrl = `${backendUrl}/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
@@ -135,7 +136,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             try {
                 // 그룹 정보 가져오기
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8080';
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
                 const groupResponse = await fetch(`${backendUrl}/api/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,

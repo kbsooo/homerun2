@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/bus")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = "https://homerun2.vercel.app")
 public class BusController {
     private final RestTemplate restTemplate;
     private final String busApiKey;
@@ -28,7 +28,7 @@ public class BusController {
     }
 
     @GetMapping("/fromMJUtoGH")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "https://homerun2.vercel.app")
     public ResponseEntity<?> getBusFromMJUtoGH() {
         try {
             String url = "http://apis.data.go.kr/6410000/busarrivalservice/getBusArrivalList";
@@ -55,7 +55,7 @@ public class BusController {
     }
 
     @GetMapping("/fromGHtoMJU")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "https://homerun2.vercel.app")
     public ResponseEntity<?> getBusFromGHtoMJU() {
         try {
             String url = "http://apis.data.go.kr/6410000/busarrivalservice/getBusArrivalList";
@@ -82,7 +82,7 @@ public class BusController {
     }
 
     @GetMapping("/next/{direction}/{time}")
-    @CrossOrigin(origins = "http://localhost:3000")
+    @CrossOrigin(origins = "https://homerun2.vercel.app")
     public ResponseEntity<?> getNextBusArrival(
             @PathVariable String direction,
             @PathVariable String time) {

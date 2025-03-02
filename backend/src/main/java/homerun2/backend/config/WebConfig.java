@@ -8,10 +8,10 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    @Value("${frontend.url:http://localhost:3000}")
+    @Value("${frontend.url:https://homerun2.vercel.app}")
     private String frontendUrl;
 
-    @Value("${backend.url:http://localhost:8080}")
+    @Value("${backend.url:http://3.27.108.105:8080}")
     private String backendUrl;
 
     @Override
