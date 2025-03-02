@@ -121,7 +121,7 @@ export default function TaxiPage() {
 
     const handleJoinGroup = async () => {
         try {
-            const token = localStorage.getItem('token');
+            const token = localStorage.getItem('accessToken');
             if (!token) {
                 alert('로그인이 필요합니다.');
                 return;
@@ -140,11 +140,17 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
+            // 백엔드 URL 설정
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                // 직접 구현한 API 엔드포인트 사용
+                // 직접 백엔드 API 엔드포인트 호출
                 console.log('Attempting to leave previous groups');
-                const leaveResponse = await fetch(`/api/taxi/leave`, {
+                const leaveUrl = `${backendUrl}/api/taxi/leave`;
+                console.log(`직접 백엔드에 요청: ${leaveUrl}`);
+                
+                const leaveResponse = await fetch(leaveUrl, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -166,17 +172,18 @@ export default function TaxiPage() {
                 // 오류가 발생해도 계속 진행
             }
 
-            // API 호출 경로 설정 (상대 경로 사용)
+            // 그룹 참여 API 직접 호출
             console.log('Joining taxi group');
+            const joinUrl = `${backendUrl}/api/taxi/join`;
+            console.log(`직접 백엔드에 그룹 참여 요청: ${joinUrl}`);
             
-            const response = await fetch(`/api/taxi/join`, {
+            const response = await fetch(joinUrl, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 },
-                credentials: 'include', // 쿠키 포함
                 body: JSON.stringify({
                     destination: taxiDestination
                 })
@@ -245,13 +252,27 @@ export default function TaxiPage() {
     const checkGroupStatus = async (groupId: string) => {
         try {
             console.log(`Checking group status for groupId: ${groupId}`);
-            // API 호출 경로 설정 (상대 경로 사용)
-            const response = await fetch(`/api/taxi/group/${groupId}`, {
+            
+            // 토큰 가져오기
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                console.error('인증 토큰이 없습니다. API 요청을 할 수 없습니다.');
+                throw new Error('인증 토큰이 없습니다');
+            }
+            
+            // 백엔드 URL 설정
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+            const url = `${backendUrl}/api/taxi/group/${groupId}`;
+            
+            console.log(`직접 백엔드에 그룹 상태 요청: ${url}`);
+            
+            // 백엔드 API 직접 호출
+            const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${token}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                credentials: 'include', // 쿠키 포함
                 cache: 'no-store' // 캐시 사용 안함
             });
             
