@@ -140,11 +140,10 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
-            // 백엔드 서버 URL 설정
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
-            console.log('Joining taxi group with backend URL:', backendUrl);
+            // API 호출 경로 설정 (상대 경로 사용)
+            console.log('Joining taxi group');
             
-            const response = await fetch(`${backendUrl}/api/taxi/join`, {
+            const response = await fetch(`/api/taxi/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -219,9 +218,8 @@ export default function TaxiPage() {
 
     const checkGroupStatus = async (groupId: string) => {
         try {
-            // 백엔드 서버 URL 설정
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
-            const response = await fetch(`${backendUrl}/api/taxi/group/${groupId}`, {
+            // API 호출 경로 설정 (상대 경로 사용)
+            const response = await fetch(`/api/taxi/group/${groupId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
                     'Accept': 'application/json'

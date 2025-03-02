@@ -19,7 +19,6 @@ export default function MyPage() {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
-  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080');
 
   const fetchChatHistories = useCallback(async () => {
     try {
@@ -42,7 +41,7 @@ export default function MyPage() {
 
       console.log('Final token being sent:', token);
 
-      const response = await fetch(`${backendUrl}/api/chat/histories`, {
+      const response = await fetch(`/api/chat/histories`, {
         method: 'GET',
         headers: {
           'Authorization': token,
@@ -112,7 +111,7 @@ export default function MyPage() {
       console.error('Failed to fetch chat histories:', error);
       setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
     }
-  }, [backendUrl, router]);
+  }, [router]);
 
   const fetchChatMessages = useCallback(async (chatId: string) => {
     try {
@@ -126,7 +125,7 @@ export default function MyPage() {
         return;
       }
 
-      const response = await fetch(`${backendUrl}/api/chat/${chatId}`, {
+      const response = await fetch(`/api/chat/${chatId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
@@ -168,7 +167,7 @@ export default function MyPage() {
     } finally {
       setIsMessagesLoading(false);
     }
-  }, [backendUrl, router]);
+  }, [router]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');

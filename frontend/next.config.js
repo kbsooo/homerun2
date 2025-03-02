@@ -2,26 +2,30 @@
 const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
-    // 환경변수에서 백엔드 URL을 가져오거나 기본값 사용
-    const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "//3.27.108.105:8080";
-
     return [
       {
         source: "/ws/:path*",
-        destination: `${backendUrl}/ws/:path*`,
+        destination: "/api/proxy/ws/:path*",
       },
       {
-        source: "/ws",
-        destination: `${backendUrl}/ws`,
+        source: "/api/taxi/:path*",
+        destination: "/api/proxy/taxi/:path*",
       },
       {
-        source: "/api/:path*",
-        destination: `${backendUrl}/api/:path*`,
+        source: "/api/auth/:path*",
+        destination: "/api/proxy/auth/:path*",
+      },
+      {
+        source: "/api/shuttle/:path*",
+        destination: "/api/proxy/shuttle/:path*",
+      },
+      {
+        source: "/api/chat/:path*",
+        destination: "/api/proxy/chat/:path*",
       },
       {
         source: "/bus/:path*",
-        destination: `${backendUrl}/bus/:path*`,
+        destination: "/api/proxy/bus/:path*",
       },
     ];
   },

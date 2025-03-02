@@ -11,9 +11,8 @@ export async function GET(
 
   try {
     console.log(`Fetching chat messages for room: ${params.chatRoomId}`);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
     
-    const response = await fetch(`${backendUrl}/api/chat/messages/${params.chatRoomId}`, {
+    const response = await fetch(`/api/chat/messages/${params.chatRoomId}`, {
       method: 'GET',
       headers: {
         'Authorization': token,

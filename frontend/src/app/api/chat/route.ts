@@ -23,10 +23,9 @@ export async function GET(request: Request) {
 
   try {
     console.log('Fetching chat histories with token:', token);
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
     const frontendUrl = process.env.NEXT_PUBLIC_FRONTEND_URL || 'https://homerun2.vercel.app';
     
-    const response = await fetch(`${backendUrl}/api/chat/histories`, {
+    const response = await fetch(`/api/chat/histories`, {
       method: 'GET',
       headers: {
         'Authorization': token,

@@ -55,9 +55,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 백엔드 서버 URL 설정
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
-                const wsUrl = `${backendUrl}/ws`;
+                // 웹소켓 연결 경로 설정 (상대 경로 사용)
+                const wsUrl = `/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
                 client = new Client({
@@ -136,8 +135,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             try {
                 // 그룹 정보 가져오기
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-                const groupResponse = await fetch(`${backendUrl}/api/chat/group/${resolvedParams.id}`, {
+                const groupResponse = await fetch(`/api/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
@@ -150,7 +148,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 }
 
                 // 메시지 정보 가져오기 (별도 요청으로 분리)
-                const messagesResponse = await fetch(`${backendUrl}/api/chat/messages/${resolvedParams.id}`, {
+                const messagesResponse = await fetch(`/api/chat/messages/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
