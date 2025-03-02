@@ -121,7 +121,8 @@ export default function TaxiPage() {
 
     const handleJoinGroup = async () => {
         try {
-            const token = localStorage.getItem('accessToken');
+            // 'token'과 'accessToken' 둘 다 확인
+            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
             if (!token) {
                 alert('로그인이 필요합니다.');
                 return;
@@ -253,8 +254,8 @@ export default function TaxiPage() {
         try {
             console.log(`Checking group status for groupId: ${groupId}`);
             
-            // 토큰 가져오기
-            const token = localStorage.getItem('accessToken');
+            // 토큰 가져오기 - 'token'과 'accessToken' 둘 다 확인
+            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
             if (!token) {
                 console.error('인증 토큰이 없습니다. API 요청을 할 수 없습니다.');
                 throw new Error('인증 토큰이 없습니다');

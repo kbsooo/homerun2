@@ -61,7 +61,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 console.log('직접 백엔드 WebSocket에 연결합니다:', wsUrl);
                 
                 // 인증 토큰 가져오기
-                const token = localStorage.getItem('accessToken');
+                const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
                 if (!token) {
                     console.error('인증 토큰이 없습니다. WebSocket 연결을 시도할 수 없습니다.');
                     setConnectionStatus('인증 오류: 로그인이 필요합니다');
@@ -186,7 +186,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const fetchData = async () => {
             try {
                 // 토큰 가져오기
-                const token = localStorage.getItem('accessToken');
+                const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
                 if (!token) {
                     console.error('인증 토큰이 없습니다. API 요청을 할 수 없습니다.');
                     return;
@@ -265,7 +265,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 return;
             }
             
-            const token = localStorage.getItem('accessToken');
+            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
             if (!token) {
                 console.error('인증 토큰이 없습니다.');
                 return;
@@ -376,7 +376,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         <div
                             key={msg.id || index}
                             className={`${styles.message} ${
-                                msg.senderId === localStorage.getItem('token')
+                                msg.senderId === localStorage.getItem('token') || msg.senderId === localStorage.getItem('accessToken')
                                     ? styles.sent
                                     : styles.received
                             }`}
