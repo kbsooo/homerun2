@@ -67,4 +67,20 @@ public class TaxiController {
         taxiGroupService.updateGroupCount(destination);
         return ResponseEntity.ok(0); // Count will be updated via WebSocket
     }
+
+    @PostMapping("/leave")
+    public ResponseEntity<?> leaveAllGroups(
+            @RequestHeader("Authorization") String authHeader) {
+        try {
+            String token = authHeader.replace("Bearer ", "");
+            int groupsLeft = taxiGroupService.leaveAllGroups(token);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Successfully left " + groupsLeft + " groups"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false,
+                    "message", e.getMessage()));
+        }
+    }
 }
