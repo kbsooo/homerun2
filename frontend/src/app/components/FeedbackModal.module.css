@@ -1,0 +1,243 @@
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease;
+}
+
+.modal {
+  background-color: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  animation: slideIn 0.3s ease;
+}
+
+:global(.darkMode) .modal {
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+  border: 1px solid #2d2d2d;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:global(.darkMode) .modalHeader {
+  border-bottom-color: #2d2d2d;
+}
+
+.modalHeader h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+:global(.darkMode) .modalHeader h2 {
+  color: #f3f4f6;
+}
+
+.closeButton {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  background-color: #f3f4f6;
+  color: #374151;
+}
+
+:global(.darkMode) .closeButton:hover {
+  background-color: #2d2d2d;
+  color: #e0e0e0;
+}
+
+.modalBody {
+  padding: 20px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #374151;
+}
+
+:global(.darkMode) .formGroup label {
+  color: #d1d5db;
+}
+
+.formGroup input,
+.formGroup textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease;
+  background-color: white;
+  color: #111827;
+}
+
+:global(.darkMode) .formGroup input,
+:global(.darkMode) .formGroup textarea {
+  border-color: #4b5563;
+  background-color: #1e1e1e;
+  color: #e0e0e0;
+}
+
+.formGroup input:focus,
+.formGroup textarea:focus {
+  outline: none;
+  border-color: var(--theme-color, #005eb8);
+  box-shadow: 0 0 0 2px rgba(0, 94, 184, 0.1);
+}
+
+:global(.yellowTheme) .formGroup input:focus,
+:global(.yellowTheme) .formGroup textarea:focus {
+  border-color: var(--theme-color, #fabe00);
+  box-shadow: 0 0 0 2px rgba(250, 190, 0, 0.1);
+}
+
+.modalFooter {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 20px;
+  gap: 12px;
+  border-top: 1px solid #e5e7eb;
+}
+
+:global(.darkMode) .modalFooter {
+  border-top-color: #2d2d2d;
+}
+
+.cancelButton,
+.submitButton,
+.closeModalButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.cancelButton {
+  background-color: transparent;
+  border: 1px solid #d1d5db;
+  color: #4b5563;
+}
+
+:global(.darkMode) .cancelButton {
+  border-color: #4b5563;
+  color: #d1d5db;
+}
+
+.cancelButton:hover {
+  background-color: #f3f4f6;
+}
+
+:global(.darkMode) .cancelButton:hover {
+  background-color: #2d2d2d;
+}
+
+.submitButton {
+  background-color: var(--theme-color, #005eb8);
+  border: 1px solid transparent;
+  color: white;
+}
+
+.submitButton:hover {
+  background-color: var(--theme-hover, #004e99);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.closeModalButton {
+  background-color: var(--theme-color, #005eb8);
+  border: 1px solid transparent;
+  color: white;
+}
+
+.closeModalButton:hover {
+  background-color: var(--theme-hover, #004e99);
+}
+
+.successMessage {
+  text-align: center;
+  font-size: 1.1rem;
+  margin: 20px 0;
+  color: #10b981;
+}
+
+:global(.darkMode) .successMessage {
+  color: #34d399;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 640px) {
+  .modal {
+    width: 95%;
+  }
+  
+  .modalHeader h2 {
+    font-size: 1.1rem;
+  }
+  
+  .modalFooter {
+    padding: 12px 16px;
+  }
+} 

@@ -72,6 +72,7 @@
   padding: 0 0.25rem;
   border-radius: 4px;
   position: relative;
+  cursor: pointer;
 }
 
 .link::after {

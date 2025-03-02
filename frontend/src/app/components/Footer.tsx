@@ -1,10 +1,19 @@
 // app/components/Footer.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import styles from './Footer.module.css';
+import FeedbackModal from './FeedbackModal';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalKey, setModalKey] = useState(0);
+  
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setModalKey(prev => prev + 1);
+  };
   
   return (
     <footer className={styles.footer}>
@@ -29,12 +38,24 @@ export default function Footer() {
             >
               KBSOO
             </Link>
+            <span> · </span>
+            <span 
+              onClick={openModal}
+              className={styles.link}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => e.key === 'Enter' && openModal()}
+            >
+              피드백
+            </span>
           </div>
         </div>
         <div className={styles.copyright}>
           © {currentYear} KBSOO. All rights reserved.
         </div>
       </div>
+      
+      <FeedbackModal key={modalKey} isOpen={isModalOpen} onClose={closeModal} />
     </footer>
   );
 }
