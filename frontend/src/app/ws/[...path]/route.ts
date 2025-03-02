@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// 모든 HTTP 메서드 처리를 위한 공통 핸들러
-async function handler(request: NextRequest) {
+// 모든 HTTP 메서드 처리
+async function handler(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
   try {
+    // 경로 파라미터 가져오기 및 재구성
+    const path = params.path.join('/');
+    
     // 명시적으로 http 프로토콜 추가
     const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-    const url = `${backendUrl}/ws${request.nextUrl.search}`;
+    const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
     
-    console.log(`WebSocket base proxy: ${request.method} to: ${url}`);
+    console.log(`WebSocket dynamic proxy: ${request.method} to: ${url}`);
     
     // 요청 헤더 복사
     const headers = new Headers(request.headers);
@@ -27,7 +33,7 @@ async function handler(request: NextRequest) {
     const response = await fetch(url, requestOptions);
     
     // 응답 상태 및 헤더 로깅
-    console.log(`WebSocket base proxy response status: ${response.status}`);
+    console.log(`WebSocket dynamic proxy response status: ${response.status}`);
     
     // 응답 그대로 반환
     const data = await response.text();
@@ -40,7 +46,7 @@ async function handler(request: NextRequest) {
       headers: responseHeaders
     });
   } catch (error) {
-    console.error('WebSocket base proxy error:', error);
+    console.error('WebSocket dynamic proxy error:', error);
     return NextResponse.json(
       { error: '웹소켓 요청 중 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }

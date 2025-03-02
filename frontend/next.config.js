@@ -3,6 +3,7 @@ const nextConfig = {
   reactStrictMode: true,
   async rewrites() {
     return [
+      // WebSocket 프록시 경로
       {
         source: "/ws",
         destination: "/app/ws",
@@ -11,22 +12,27 @@ const nextConfig = {
         source: "/ws/:path*",
         destination: "/app/ws/:path*",
       },
+      // 택시 API 경로
       {
         source: "/api/taxi/:path*",
         destination: "/api/proxy/taxi/:path*",
       },
+      // 인증 API 경로
       {
         source: "/api/auth/:path*",
         destination: "/api/proxy/auth/:path*",
       },
+      // 셔틀 API 경로
       {
         source: "/api/shuttle/:path*",
         destination: "/api/proxy/shuttle/:path*",
       },
+      // 채팅 API 경로
       {
         source: "/api/chat/:path*",
         destination: "/api/proxy/chat/:path*",
       },
+      // 버스 API 경로
       {
         source: "/bus/:path*",
         destination: "/api/proxy/bus/:path*",

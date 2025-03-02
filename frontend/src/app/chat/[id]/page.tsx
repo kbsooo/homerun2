@@ -51,7 +51,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         let client: Client | null = null;
         let reconnectAttempts = 0;
-        const maxReconnectAttempts = 5;
+        const maxReconnectAttempts = 10; // 재연결 시도 횟수 증가
 
         const initializeWebSocket = () => {
             try {
@@ -65,7 +65,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         try {
                             // SockJS를 통한 연결. 이것은 웹소켓 폴백도 지원함
                             const socket = new SockJS(wsUrl, null, {
-                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling', 'xdr-streaming', 'xdr-polling', 'iframe-eventsource', 'iframe-htmlfile', 'jsonp-polling'],
                                 // 디버깅을 위한 로그 활성화
                                 // debug: true // 타입 정의에서 지원하지 않는 옵션
                             });
@@ -78,13 +78,13 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         }
                     },
                     connectHeaders: {},
-                    reconnectDelay: 5000, // 5초 후 재연결
-                    heartbeatIncoming: 4000,
-                    heartbeatOutgoing: 4000,
+                    reconnectDelay: 3000, // 재연결 간격 줄임 (3초)
+                    heartbeatIncoming: 10000, // 하트비트 간격 늘림
+                    heartbeatOutgoing: 10000, // 하트비트 간격 늘림
                     onConnect: () => {
                         console.log('Connected to chat WebSocket');
                         setConnectionStatus('연결됨');
-                        reconnectAttempts = 0;
+                        reconnectAttempts = 0; // 연결 성공 시 재시도 카운터 초기화
                         
                         // 구독
                         client?.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
@@ -110,6 +110,23 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     onStompError: (frame) => {
                         console.error('STOMP error:', frame);
                         setConnectionStatus('STOMP 오류');
+                        
+                        // STOMP 오류 시 재연결 로직 추가
+                        if (reconnectAttempts < maxReconnectAttempts) {
+                            setTimeout(() => {
+                                if (client) {
+                                    try {
+                                        client.deactivate();
+                                        setTimeout(() => {
+                                            client?.activate();
+                                        }, 1000);
+                                    } catch (error) {
+                                        console.error('Error during STOMP reconnect:', error);
+                                    }
+                                }
+                            }, 3000);
+                            reconnectAttempts++;
+                        }
                     },
                     onWebSocketError: (error) => {
                         console.error('WebSocket error:', error);
@@ -124,6 +141,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     onWebSocketClose: () => {
                         console.log('WebSocket connection closed');
                         setConnectionStatus('연결 끊김');
+                        
+                        // 연결 종료 시 재연결 시도 추가
+                        if (reconnectAttempts < maxReconnectAttempts) {
+                            setTimeout(() => {
+                                console.log(`재연결 시도 #${reconnectAttempts + 1}`);
+                                if (client) {
+                                    try {
+                                        client.activate();
+                                    } catch (error) {
+                                        console.error('Error during WebSocket reconnect:', error);
+                                    }
+                                }
+                            }, 3000);
+                            reconnectAttempts++;
+                        }
                     },
                     debug: (str) => {
                         console.log('STOMP debug:', str);
@@ -136,6 +168,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 } catch (error) {
                     console.error('Failed to activate STOMP client:', error);
                     setConnectionStatus('STOMP 활성화 실패');
+                    
+                    // 초기 연결 실패 시 한번 더 시도
+                    setTimeout(() => {
+                        try {
+                            client?.activate();
+                            setStompClient(client);
+                        } catch (retryError) {
+                            console.error('Failed to activate STOMP client on retry:', retryError);
+                        }
+                    }, 3000);
                 }
             } catch (error) {
                 console.error('Error initializing WebSocket:', error);
