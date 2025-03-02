@@ -140,6 +140,29 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
+            // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
+            try {
+                const leaveResponse = await fetch(`/api/taxi/leave`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`,
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
+                });
+                
+                // 이 API가 존재하지 않거나 실패해도 계속 진행
+                if (leaveResponse.ok) {
+                    console.log('Successfully left previous groups');
+                } else {
+                    console.warn('Failed to leave previous groups, continuing anyway');
+                }
+            } catch (error) {
+                console.error('Error leaving previous groups:', error);
+                // 오류가 발생해도 계속 진행
+            }
+
             // API 호출 경로 설정 (상대 경로 사용)
             console.log('Joining taxi group');
             
