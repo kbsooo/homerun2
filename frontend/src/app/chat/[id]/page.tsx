@@ -51,176 +51,191 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         let client: Client | null = null;
         let reconnectAttempts = 0;
-        const maxReconnectAttempts = 10; // 재연결 시도 횟수 증가
+        const maxReconnectAttempts = 10;
 
         const initializeWebSocket = () => {
             try {
-                // 웹소켓 연결 경로 - 백엔드 URL 직접 지정하지 않고 프록시 사용
-                // API route에서 프록시하도록 설정된 상대 경로 사용
-                const wsUrl = `/ws`;
-                console.log('Connecting to chat WebSocket using proxy path:', wsUrl);
+                // 백엔드 서버로 직접 연결
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+                const wsUrl = `${backendUrl}/ws`;
+                console.log('직접 백엔드 WebSocket에 연결합니다:', wsUrl);
                 
+                // 인증 토큰 가져오기
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('인증 토큰이 없습니다. WebSocket 연결을 시도할 수 없습니다.');
+                    setConnectionStatus('인증 오류: 로그인이 필요합니다');
+                    return;
+                }
+
+                // STOMP 클라이언트 생성
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            // SockJS를 통한 연결 - 폴백 메커니즘 제한
+                            // SockJS 설정 - 폴백 메커니즘 간소화
                             const socket = new SockJS(wsUrl, null, {
-                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'], // iframe과 jsonp 메커니즘 제외
-                                timeout: 10000, // 타임아웃 증가
-                                server: '127', // 서버 ID 명시적 지정
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+                                timeout: 15000,
                             });
-                            console.log('SockJS connection created:', socket);
+                            
+                            // 개발 및 디버깅용 로그
+                            const originalOnOpen = socket.onopen;
+                            socket.onopen = function(event) {
+                                console.log('SockJS 연결 성공!');
+                                if (originalOnOpen) originalOnOpen.call(this, event);
+                            };
+                            
+                            const originalOnClose = socket.onclose;
+                            socket.onclose = function(event) {
+                                console.log('SockJS 연결 종료:', event);
+                                if (originalOnClose) originalOnClose.call(this, event);
+                            };
+                            
+                            const originalOnError = socket.onerror;
+                            socket.onerror = function(event) {
+                                console.error('SockJS 오류 발생:', event);
+                                if (originalOnError) originalOnError.call(this, event);
+                            };
+                            
+                            console.log('SockJS 인스턴스 생성됨:', socket);
                             return socket;
                         } catch (error) {
-                            console.error('SockJS connection error:', error);
-                            setConnectionStatus('웹소켓 연결 실패');
+                            console.error('SockJS 인스턴스 생성 실패:', error);
+                            setConnectionStatus('연결 실패: SockJS 인스턴스 생성 오류');
                             return null;
                         }
                     },
-                    connectHeaders: {},
-                    reconnectDelay: 3000, // 재연결 간격 줄임 (3초)
-                    heartbeatIncoming: 10000, // 하트비트 간격 늘림
-                    heartbeatOutgoing: 10000, // 하트비트 간격 늘림
-                    onConnect: () => {
-                        console.log('Connected to chat WebSocket');
-                        setConnectionStatus('연결됨');
-                        reconnectAttempts = 0; // 연결 성공 시 재시도 카운터 초기화
-                        
-                        // 구독
-                        client?.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
-                            try {
-                                const newMsg = JSON.parse(message.body);
-                                console.log('Received chat message:', newMsg);
-                                setMessages(prev => [...prev, newMsg]);
-                            } catch (error) {
-                                console.error('Error parsing message:', error, message.body);
-                            }
-                        });
-                        
-                        client?.subscribe(`/topic/group/${resolvedParams.id}`, (message) => {
-                            try {
-                                const updatedGroup = JSON.parse(message.body);
-                                console.log('Received group update:', updatedGroup);
-                                setGroup(updatedGroup);
-                            } catch (error) {
-                                console.error('Error parsing group update:', error, message.body);
-                            }
-                        });
+                    // 인증 토큰을 헤더에 추가
+                    connectHeaders: {
+                        Authorization: `Bearer ${token}`
                     },
-                    onStompError: (frame) => {
-                        console.error('STOMP error:', frame);
-                        setConnectionStatus('STOMP 오류');
-                        
-                        // STOMP 오류 시 재연결 로직 추가
-                        if (reconnectAttempts < maxReconnectAttempts) {
-                            setTimeout(() => {
-                                if (client) {
-                                    try {
-                                        client.deactivate();
-                                        setTimeout(() => {
-                                            client?.activate();
-                                        }, 1000);
-                                    } catch (error) {
-                                        console.error('Error during STOMP reconnect:', error);
-                                    }
-                                }
-                            }, 3000);
-                            reconnectAttempts++;
-                        }
-                    },
-                    onWebSocketError: (error) => {
-                        console.error('WebSocket error:', error);
-                        setConnectionStatus('웹소켓 오류');
-                        
-                        reconnectAttempts++;
-                        if (reconnectAttempts > maxReconnectAttempts) {
-                            console.log('최대 재연결 시도 횟수 초과');
-                            setConnectionStatus('연결 실패 - 새로고침 필요');
-                        }
-                    },
-                    onWebSocketClose: () => {
-                        console.log('WebSocket connection closed');
-                        setConnectionStatus('연결 끊김');
-                        
-                        // 연결 종료 시 재연결 시도 추가
-                        if (reconnectAttempts < maxReconnectAttempts) {
-                            setTimeout(() => {
-                                console.log(`재연결 시도 #${reconnectAttempts + 1}`);
-                                if (client) {
-                                    try {
-                                        client.activate();
-                                    } catch (error) {
-                                        console.error('Error during WebSocket reconnect:', error);
-                                    }
-                                }
-                            }, 3000);
-                            reconnectAttempts++;
-                        }
-                    },
+                    reconnectDelay: 5000,
+                    heartbeatIncoming: 10000,
+                    heartbeatOutgoing: 10000,
                     debug: function(str) {
-                        console.log('STOMP debug:', str);
+                        console.log('STOMP 디버그:', str);
                     }
                 });
 
-                try {
-                    client.activate();
-                    setStompClient(client);
-                } catch (error) {
-                    console.error('Failed to activate STOMP client:', error);
-                    setConnectionStatus('STOMP 활성화 실패');
+                // 연결 이벤트 핸들러
+                client.onConnect = (frame) => {
+                    console.log('STOMP 연결 성공!', frame);
+                    setConnectionStatus('연결됨');
+                    reconnectAttempts = 0;
                     
-                    // 초기 연결 실패 시 한번 더 시도
-                    setTimeout(() => {
+                    // 채팅방 구독
+                    client?.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
                         try {
-                            client?.activate();
-                            setStompClient(client);
-                        } catch (retryError) {
-                            console.error('Failed to activate STOMP client on retry:', retryError);
+                            const newMsg = JSON.parse(message.body);
+                            console.log('메시지 수신:', newMsg);
+                            setMessages(prev => [...prev, newMsg]);
+                            scrollToBottom();
+                        } catch (error) {
+                            console.error('메시지 파싱 오류:', error, message.body);
                         }
-                    }, 3000);
-                }
+                    });
+                    
+                    // 그룹 정보 구독
+                    client?.subscribe(`/topic/group/${resolvedParams.id}`, (message) => {
+                        try {
+                            const groupInfo = JSON.parse(message.body);
+                            console.log('그룹 정보 업데이트:', groupInfo);
+                            setGroup(groupInfo);
+                        } catch (error) {
+                            console.error('그룹 정보 파싱 오류:', error, message.body);
+                        }
+                    });
+                };
+
+                // 오류 처리 및 재연결
+                client.onStompError = (frame) => {
+                    console.error('STOMP 오류:', frame);
+                    setConnectionStatus('연결 오류: ' + frame.headers.message);
+                };
+
+                client.onWebSocketClose = (event) => {
+                    console.log('WebSocket 연결 종료:', event);
+                    setConnectionStatus('연결 종료: 재연결 중...');
+                    
+                    // 재연결 시도
+                    if (reconnectAttempts < maxReconnectAttempts) {
+                        reconnectAttempts++;
+                        console.log(`재연결 시도 #${reconnectAttempts}`);
+                        setTimeout(() => {
+                            if (client) {
+                                client.deactivate();
+                                client.activate();
+                            }
+                        }, 5000);
+                    } else {
+                        console.error('최대 재연결 횟수 초과');
+                        setConnectionStatus('연결 실패: 최대 재시도 횟수 초과');
+                    }
+                };
+
+                // 연결 활성화
+                client.activate();
+                setStompClient(client);
             } catch (error) {
-                console.error('Error initializing WebSocket:', error);
-                setConnectionStatus('웹소켓 초기화 오류');
+                console.error('WebSocket 초기화 오류:', error);
+                setConnectionStatus('연결 실패');
             }
         };
 
         // 초기 데이터 불러오기
         const fetchData = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                router.push('/');
-                return;
-            }
-
             try {
+                // 토큰 가져오기
+                const token = localStorage.getItem('accessToken');
+                if (!token) {
+                    console.error('인증 토큰이 없습니다. API 요청을 할 수 없습니다.');
+                    return;
+                }
+                
+                // 백엔드 URL 설정
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+                
                 // 그룹 정보 가져오기
-                const groupResponse = await fetch(`/api/chat/group/${resolvedParams.id}`, {
+                console.log('그룹 정보 가져오기...');
+                const groupResponse = await fetch(`${backendUrl}/api/taxi/group/${resolvedParams.id}`, {
+                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     }
                 });
-
-                if (groupResponse.ok) {
-                    const groupData = await groupResponse.json();
-                    setGroup(groupData);
+                
+                if (!groupResponse.ok) {
+                    console.error('그룹 정보 가져오기 실패:', groupResponse.status);
+                    return;
                 }
-
-                // 메시지 정보 가져오기 (별도 요청으로 분리)
-                const messagesResponse = await fetch(`/api/chat/messages/${resolvedParams.id}`, {
+                
+                const groupData = await groupResponse.json();
+                console.log('그룹 정보:', groupData);
+                setGroup(groupData);
+                
+                // 채팅 메시지 가져오기
+                console.log('채팅 메시지 가져오기...');
+                const messagesResponse = await fetch(`${backendUrl}/api/taxi/chat/${resolvedParams.id}`, {
+                    method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json',
+                        'Content-Type': 'application/json'
                     }
                 });
-
-                if (messagesResponse.ok) {
-                    const messagesData = await messagesResponse.json();
-                    setMessages(messagesData);
+                
+                if (!messagesResponse.ok) {
+                    console.error('채팅 메시지 가져오기 실패:', messagesResponse.status);
+                    return;
                 }
+                
+                const messagesData = await messagesResponse.json();
+                console.log('채팅 메시지:', messagesData);
+                setMessages(messagesData);
+                
+                setTimeout(scrollToBottom, 100);
             } catch (error) {
-                console.error('Error fetching data:', error);
+                console.error('데이터 가져오기 오류:', error);
             }
         };
 
@@ -228,12 +243,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         initializeWebSocket();
 
         return () => {
-            if (client?.active) {
-                try {
-                    client.deactivate();
-                } catch (error) {
-                    console.error('Error deactivating STOMP client:', error);
-                }
+            if (client) {
+                console.log('WebSocket 연결 정리');
+                client.deactivate();
+                setStompClient(null);
             }
         };
     }, [resolvedParams.id, router]);
@@ -243,47 +256,42 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     }, [messages]);
 
     const handleSend = () => {
-        if (!newMessage.trim()) return;
-
-        if (!stompClient || !stompClient.active) {
-            console.error('STOMP client is not connected');
-            alert('메시지 전송을 위한 웹소켓 연결이 활성화되지 않았습니다. 새로고침 후 다시 시도해주세요.');
-            return;
-        }
-
-        const token = localStorage.getItem('token');
-        const userInfo = localStorage.getItem('userInfo');
-
-        if (!token || !userInfo) {
-            alert('로그인이 필요합니다.');
-            return;
-        }
-
+        if (newMessage.trim() === '') return;
+        
         try {
-            const { nickname } = JSON.parse(userInfo);
+            if (!stompClient || !stompClient.connected) {
+                console.error('STOMP 클라이언트가 연결되지 않았습니다.');
+                setConnectionStatus('연결되지 않음 - 재연결 중...');
+                return;
+            }
+            
+            const token = localStorage.getItem('accessToken');
+            if (!token) {
+                console.error('인증 토큰이 없습니다.');
+                return;
+            }
+            
+            // 메시지 객체 생성
             const message = {
                 groupId: resolvedParams.id,
-                senderId: token,
-                senderName: nickname,
-                content: newMessage,
-                timestamp: new Date().toISOString()
+                content: newMessage.trim()
             };
-
-            // 웹소켓 연결 상태 확인
-            if (stompClient.connected) {
-                stompClient.publish({
-                    destination: '/app/chat.send',
-                    body: JSON.stringify(message)
-                });
-                
-                setNewMessage('');
-            } else {
-                console.error('STOMP client is not connected');
-                alert('웹소켓 연결이 끊어졌습니다. 새로고침 후 다시 시도해주세요.');
-            }
+            
+            console.log('메시지 전송 중:', message);
+            
+            // STOMP를 통해 메시지 전송
+            stompClient.publish({
+                destination: `/app/chat/${resolvedParams.id}`,
+                body: JSON.stringify(message),
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            
+            // 메시지 입력 필드 초기화
+            setNewMessage('');
         } catch (error) {
-            console.error('Error sending message:', error);
-            alert('메시지 전송에 실패했습니다.');
+            console.error('메시지 전송 오류:', error);
         }
     };
 
@@ -312,6 +320,29 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
     useEffect(() => {
         document.body.className = `${theme} ${darkMode ? 'darkMode' : ''}`;
     }, [theme, darkMode]);
+
+    // 라우트 변경 시 연결 정리
+    useEffect(() => {
+        const handleRouteChange = () => {
+            console.log('페이지 이동 감지: WebSocket 연결 정리');
+            if (stompClient) {
+                try {
+                    stompClient.deactivate();
+                    setStompClient(null);
+                    setConnectionStatus('연결 종료');
+                } catch (error) {
+                    console.error('라우트 변경 시 WebSocket 정리 오류:', error);
+                }
+            }
+        };
+
+        // 브라우저의 앞으로/뒤로 버튼 이벤트 처리
+        window.addEventListener('popstate', handleRouteChange);
+        
+        return () => {
+            window.removeEventListener('popstate', handleRouteChange);
+        };
+    }, [stompClient]);
 
     return (
         <div className={`${theme} ${darkMode ? 'darkMode' : ''}`}>
