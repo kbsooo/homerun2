@@ -19,7 +19,7 @@ export default function MyPage() {
   const [isMessagesLoading, setIsMessagesLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [messagesError, setMessagesError] = useState<string | null>(null);
-  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080');
+  const [backendUrl] = useState(process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080');
 
   const fetchChatHistories = useCallback(async () => {
     try {

@@ -4,7 +4,7 @@ const nextConfig = {
   async rewrites() {
     // 환경변수에서 백엔드 URL을 가져오거나 기본값 사용
     const backendUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://3.27.108.105:8080";
+      process.env.NEXT_PUBLIC_BACKEND_URL || "//3.27.108.105:8080";
 
     return [
       {
@@ -29,9 +29,9 @@ const nextConfig = {
     NEXT_PUBLIC_FRONTEND_URL:
       process.env.NEXT_PUBLIC_FRONTEND_URL || "https://homerun2.vercel.app",
     NEXT_PUBLIC_BACKEND_URL:
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://3.27.108.105:8080",
+      process.env.NEXT_PUBLIC_BACKEND_URL || "//3.27.108.105:8080",
     NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL || "http://3.27.108.105:8080",
+      process.env.NEXT_PUBLIC_API_URL || "//3.27.108.105:8080",
   },
   typescript: {
     ignoreBuildErrors: true,

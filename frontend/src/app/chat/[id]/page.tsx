@@ -56,7 +56,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const initializeWebSocket = () => {
             try {
                 // 백엔드 서버 URL 설정
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
                 const wsUrl = `${backendUrl}/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
