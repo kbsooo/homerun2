@@ -33,6 +33,7 @@ const nextConfig = {
     NEXT_PUBLIC_FRONTEND_URL: "",
     NEXT_PUBLIC_BACKEND_URL: "http://3.27.108.105:8080",
     NEXT_PUBLIC_API_URL: "http://3.27.108.105:8080",
+    NEXT_PUBLIC_WS_URL: "http://3.27.108.105:8080/ws",
   },
   typescript: {
     ignoreBuildErrors: true,

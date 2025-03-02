@@ -55,14 +55,18 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 웹소켓 연결 경로 설정 (상대 경로 사용)
+                // 웹소켓 연결 경로 - 백엔드 URL 직접 지정하지 않고 프록시 사용
+                // API route에서 프록시하도록 설정된 상대 경로 사용
                 const wsUrl = `/ws`;
-                console.log('Connecting to chat WebSocket at:', wsUrl);
+                console.log('Connecting to chat WebSocket using proxy path:', wsUrl);
                 
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            return new SockJS(wsUrl);
+                            // SockJS를 통한 연결. 이것은 웹소켓 폴백도 지원함
+                            const socket = new SockJS(wsUrl);
+                            console.log('SockJS connection created:', socket);
+                            return socket;
                         } catch (error) {
                             console.error('SockJS connection error:', error);
                             setConnectionStatus('웹소켓 연결 실패');
