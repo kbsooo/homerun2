@@ -11,26 +11,40 @@ export async function GET(
     
     console.log(`Proxying GET request to: ${url}`);
     
-    const headers = new Headers(request.headers);
+    const headers = new Headers();
+    headers.set('Authorization', request.headers.get('Authorization') || '');
+    headers.set('Accept', request.headers.get('Accept') || 'application/json');
+    headers.set('Content-Type', 'application/json');
     headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'GET',
       headers,
       cache: 'no-store',
-      next: { revalidate: 0 }
     });
     
     const data = await response.text();
     try {
       // Try to parse as JSON first
       const jsonData = JSON.parse(data);
-      return NextResponse.json(jsonData, { status: response.status });
+      return NextResponse.json(jsonData, {
+        status: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
     } catch (e) {
       // If not JSON, return as text
       return new NextResponse(data, {
         status: response.status,
-        headers: { 'Content-Type': 'text/plain' },
+        headers: {
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       });
     }
   } catch (error) {
@@ -54,26 +68,40 @@ export async function POST(
     console.log(`Proxying POST request to: ${url}`);
     
     const body = await request.json();
-    const headers = new Headers(request.headers);
+    const headers = new Headers();
+    headers.set('Authorization', request.headers.get('Authorization') || '');
+    headers.set('Accept', request.headers.get('Accept') || 'application/json');
+    headers.set('Content-Type', 'application/json');
     headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      next: { revalidate: 0 }
     });
     
     const data = await response.text();
     try {
       // Try to parse as JSON first
       const jsonData = JSON.parse(data);
-      return NextResponse.json(jsonData, { status: response.status });
+      return NextResponse.json(jsonData, {
+        status: response.status,
+        headers: {
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
+      });
     } catch (e) {
       // If not JSON, return as text
       return new NextResponse(data, {
         status: response.status,
-        headers: { 'Content-Type': 'text/plain' },
+        headers: {
+          'Content-Type': 'text/plain',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        },
       });
     }
   } catch (error) {
@@ -83,4 +111,15 @@ export async function POST(
       { status: 500 }
     );
   }
+}
+
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    },
+  });
 } 
