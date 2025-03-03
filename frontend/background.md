@@ -711,3 +711,4 @@ T @ 517-e72941a1114601a7.js:1Understand this errorAI
 517-e72941a1114601a7.js:1 Failed to fetch group: 403
 
 이런 로그가 뜨면서 채팅방에서 아무것도 안되는 에러가 있어
+- stompjs 이거 깔면 나중에 배포할때 오류가 나는 경우가 많더라고 다른 방법으로 해결해줬으면 해

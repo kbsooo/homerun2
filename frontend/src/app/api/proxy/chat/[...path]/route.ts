@@ -5,96 +5,107 @@ export async function GET(
   { params }: { params: { path: string[] } }
 ) {
   try {
-    const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-    const url = `${backendUrl}/api/chat/${path}${request.nextUrl.search || ''}`;
+    console.log(`Proxying GET request for ${params.path.join('/')}`);
     
-    console.log(`Proxying Chat GET request to: ${url}`);
+    // 기본 백엔드 URL
+    const backendUrl = process.env.BACKEND_URL || 'http://3.27.108.105:8080';
     
-    // 헤더 복사하고 필요한 것만 수정
-    const headers = new Headers();
-    request.headers.forEach((value, key) => {
-      // host 헤더 제외하고 복사
-      if (key.toLowerCase() !== 'host') {
-        headers.set(key, value);
-      }
-    });
+    // 인증 헤더 검증 및 로깅
+    const authHeader = request.headers.get('authorization');
+    console.log(`Authorization header present: ${!!authHeader}`);
     
-    // 인증 헤더 로깅 및 쿠키 검사 (디버깅용)
-    if (headers.has('authorization')) {
-      const authHeader = headers.get('authorization') || '';
-      console.log('Authorization header is present:', authHeader.substring(0, 15) + '...');
-    } else {
-      console.log('No Authorization header in request - this will likely fail');
+    // path 조합 및 검증
+    if (!params.path || params.path.length === 0) {
+      return NextResponse.json(
+        { error: 'Path is required' },
+        { status: 400 }
+      );
     }
 
-    // 쿠키 확인
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-      console.log('Cookie header is present');
-      headers.set('cookie', cookieHeader);
-    } else {
-      console.log('No cookie in request');
-    }
-    
-    const response = await fetch(url, {
+    // URL 구성
+    const apiPath = params.path.join('/');
+    const url = `${backendUrl}/api/chat/${apiPath}${request.nextUrl.search || ''}`;
+    console.log(`Proxying to: ${url}`);
+
+    // 헤더 복사 (host 헤더 제외)
+    const headers = new Headers();
+    request.headers.forEach((value, key) => {
+      if (key.toLowerCase() !== 'host') {
+        headers.append(key, value);
+      }
+    });
+
+    // 요청 전송
+    const backendResponse = await fetch(url, {
       method: 'GET',
       headers,
-      cache: 'no-store',
-      redirect: 'follow',
       credentials: 'include',
     });
+
+    console.log(`Backend response status: ${backendResponse.status}`);
+
+    // 권한 오류 자세히 로깅
+    if (backendResponse.status === 403 || backendResponse.status === 401) {
+      const errorText = await backendResponse.text();
+      console.error(`Authentication error (${backendResponse.status}):`, errorText);
+      
+      // 응답 생성
+      return new NextResponse(errorText, {
+        status: backendResponse.status,
+        statusText: backendResponse.statusText,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      });
+    }
+
+    // 응답 데이터 처리
+    let responseData;
+    const contentType = backendResponse.headers.get('content-type');
     
-    // 응답 상태 로깅
-    console.log(`Chat proxy response status: ${response.status}`);
-    if (response.status === 403 || response.status === 401) {
-      const responseBody = await response.text();
-      console.error('Auth error response:', responseBody);
-      return NextResponse.json(
-        { error: '채팅 서버 접근 권한이 없습니다. 로그인 상태를 확인해주세요.' },
-        { 
-          status: response.status,
+    // JSON 응답인 경우 먼저 파싱 시도
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        responseData = await backendResponse.json();
+        console.log(`Successfully parsed JSON response for ${apiPath}`);
+        
+        // JSON 응답 반환
+        return NextResponse.json(responseData, {
+          status: backendResponse.status,
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
           }
-        }
-      );
+        });
+      } catch (jsonError) {
+        console.error('Error parsing JSON:', jsonError);
+        // JSON 파싱 실패 시 텍스트로 대체
+        responseData = await backendResponse.text();
+      }
+    } else {
+      // 텍스트 응답 처리
+      responseData = await backendResponse.text();
     }
-    
-    const data = await response.text();
-    console.log(`Chat proxy response data length: ${data.length}`);
-    
-    try {
-      // JSON으로 파싱 시도
-      const jsonData = JSON.parse(data);
-      console.log('Parsed JSON response data:', JSON.stringify(jsonData).substring(0, 100) + '...');
-      return NextResponse.json(jsonData, { 
-        status: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
-      });
-    } catch (e) {
-      // JSON이 아니면 텍스트로 반환
-      console.log('Response is not JSON, returning as text');
-      return new NextResponse(data, {
-        status: response.status,
-        headers: { 
-          'Content-Type': 'text/plain',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-    }
+
+    // 텍스트 응답인 경우
+    return new NextResponse(responseData, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      headers: {
+        'Content-Type': contentType || 'text/plain',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      }
+    });
   } catch (error) {
-    console.error('Chat Proxy error:', error);
+    console.error('Proxy error:', error);
     return NextResponse.json(
-      { error: '채팅 API 요청 중 오류가 발생했습니다.' },
+      { error: 'Internal Server Error in proxy' },
       { status: 500 }
     );
   }
@@ -105,127 +116,125 @@ export async function POST(
   { params }: { params: { path: string[] } }
 ) {
   try {
-    const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-    const url = `${backendUrl}/api/chat/${path}${request.nextUrl.search || ''}`;
+    console.log(`Proxying POST request for ${params.path.join('/')}`);
     
-    console.log(`Proxying Chat POST request to: ${url}`);
+    // 기본 백엔드 URL
+    const backendUrl = process.env.BACKEND_URL || 'http://3.27.108.105:8080';
     
-    let body;
-    try {
-      body = await request.json();
-      console.log('Request body:', JSON.stringify(body).substring(0, 100) + (JSON.stringify(body).length > 100 ? '...' : ''));
-    } catch (error) {
-      console.warn('Request body is not JSON, using text/raw body instead');
-      body = await request.text();
+    // 인증 헤더 검증 및 로깅
+    const authHeader = request.headers.get('authorization');
+    console.log(`Authorization header present: ${!!authHeader}`);
+    
+    // path 조합 및 검증
+    if (!params.path || params.path.length === 0) {
+      return NextResponse.json(
+        { error: 'Path is required' },
+        { status: 400 }
+      );
     }
-    
-    // 헤더 복사하고 필요한 것만 수정
+
+    // URL 구성
+    const apiPath = params.path.join('/');
+    const url = `${backendUrl}/api/chat/${apiPath}${request.nextUrl.search || ''}`;
+    console.log(`Proxying to: ${url}`);
+
+    // 요청 본문 읽기
+    const body = await request.text();
+    console.log(`Request body length: ${body.length} bytes`);
+
+    // 헤더 복사 (host 헤더 제외)
     const headers = new Headers();
     request.headers.forEach((value, key) => {
-      // host 헤더 제외하고 복사
       if (key.toLowerCase() !== 'host') {
-        headers.set(key, value);
+        headers.append(key, value);
       }
     });
-    
-    // 인증 헤더 로깅 (디버깅용)
-    if (headers.has('authorization')) {
-      const authHeader = headers.get('authorization') || '';
-      console.log('Authorization header is present in POST request:', authHeader.substring(0, 15) + '...');
-    } else {
-      console.log('No Authorization header in POST request - this will likely fail');
-    }
-    
-    // 쿠키 확인
-    const cookieHeader = request.headers.get('cookie');
-    if (cookieHeader) {
-      console.log('Cookie header is present in POST request');
-      headers.set('cookie', cookieHeader);
-    } else {
-      console.log('No cookie in POST request');
-    }
-    
-    // Content-Type 설정
-    if (!headers.has('Content-Type')) {
-      headers.set('Content-Type', 'application/json');
-    }
-    
-    const response = await fetch(url, {
+
+    // 요청 전송
+    const backendResponse = await fetch(url, {
       method: 'POST',
       headers,
-      body: typeof body === 'string' ? body : JSON.stringify(body),
-      redirect: 'follow',
       credentials: 'include',
+      body
     });
+
+    console.log(`Backend response status: ${backendResponse.status}`);
+
+    // 권한 오류 자세히 로깅
+    if (backendResponse.status === 403 || backendResponse.status === 401) {
+      const errorText = await backendResponse.text();
+      console.error(`Authentication error (${backendResponse.status}):`, errorText);
+      
+      // 응답 생성
+      return new NextResponse(errorText, {
+        status: backendResponse.status,
+        statusText: backendResponse.statusText,
+        headers: {
+          'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*',
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+        }
+      });
+    }
+
+    // 응답 데이터 처리
+    let responseData;
+    const contentType = backendResponse.headers.get('content-type');
     
-    // 응답 상태 로깅
-    console.log(`Chat proxy POST response status: ${response.status}`);
-    if (response.status === 403 || response.status === 401) {
-      const responseBody = await response.text();
-      console.error('Auth error response for POST:', responseBody);
-      return NextResponse.json(
-        { error: '채팅 서버 접근 권한이 없습니다. 로그인 상태를 확인해주세요.' },
-        { 
-          status: response.status,
+    // JSON 응답인 경우 먼저 파싱 시도
+    if (contentType && contentType.includes('application/json')) {
+      try {
+        responseData = await backendResponse.json();
+        console.log(`Successfully parsed JSON response for ${apiPath}`);
+        
+        // JSON 응답 반환
+        return NextResponse.json(responseData, {
+          status: backendResponse.status,
           headers: {
             'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization'
           }
-        }
-      );
+        });
+      } catch (jsonError) {
+        console.error('Error parsing JSON:', jsonError);
+        // JSON 파싱 실패 시 텍스트로 대체
+        responseData = await backendResponse.text();
+      }
+    } else {
+      // 텍스트 응답 처리
+      responseData = await backendResponse.text();
     }
-    
-    const data = await response.text();
-    console.log(`Chat proxy POST response data length: ${data.length}`);
-    
-    try {
-      // JSON으로 파싱 시도
-      const jsonData = JSON.parse(data);
-      console.log('Parsed POST response data:', JSON.stringify(jsonData).substring(0, 100) + '...');
-      return NextResponse.json(jsonData, { 
-        status: response.status,
-        headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        }
-      });
-    } catch (e) {
-      // JSON이 아니면 텍스트로 반환
-      console.log('POST response is not JSON, returning as text');
-      return new NextResponse(data, {
-        status: response.status,
-        headers: { 
-          'Content-Type': 'text/plain',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-        },
-      });
-    }
+
+    // 텍스트 응답인 경우
+    return new NextResponse(responseData, {
+      status: backendResponse.status,
+      statusText: backendResponse.statusText,
+      headers: {
+        'Content-Type': contentType || 'text/plain',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+      }
+    });
   } catch (error) {
-    console.error('Chat Proxy POST error:', error);
+    console.error('Proxy error:', error);
     return NextResponse.json(
-      { error: '채팅 API 요청 중 오류가 발생했습니다.' },
+      { error: 'Internal Server Error in proxy' },
       { status: 500 }
     );
   }
 }
 
-// OPTIONS 요청 처리 (CORS 프리플라이트 요청)
-export async function OPTIONS(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
+// CORS 프리플라이트 요청 처리
+export async function OPTIONS() {
   return new NextResponse(null, {
     status: 200,
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400',
-    },
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization'
+    }
   });
 } 
