@@ -531,3 +531,6 @@ sG @ 4bd1b696-bd3e6f4c22b58cbd.js:1
 sY @ 4bd1b696-bd3e6f4c22b58cbd.js:1Understand this errorAI
 page-1fae3dbf5cba06c1.js:1 Join group response: {"error":"서버 요청 중 오류가 발생했습니다."}
 이런거 에러 뜨는 경우도 많아
+
+- 니가 계속 수정하면서 프록시 어쩌구 하면서 backend쪽 api주소가 바뀐건지
+기존의 서버 주소로 http://3.27.108.105:8080/api/shuttle/fromMJUtoGH 이렇게 요청을 날려도 정보를 불러오지 못하고  있을 때가 있어

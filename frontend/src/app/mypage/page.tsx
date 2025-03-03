@@ -41,7 +41,7 @@ export default function MyPage() {
 
       console.log('Final token being sent:', token);
 
-      const response = await fetch(`/api/proxy/chat/histories`, {
+      const response = await fetch(`/api/chat/histories`, {
         method: 'GET',
         headers: {
           'Authorization': token,
@@ -125,7 +125,7 @@ export default function MyPage() {
         return;
       }
 
-      const response = await fetch(`/api/proxy/chat/${chatId}`, {
+      const response = await fetch(`/api/chat/${chatId}`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',

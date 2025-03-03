@@ -6,24 +6,15 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const direction = searchParams.get('direction') || 'fromMJUtoGH';
     
-    const response = await fetch(`/api/proxy/bus/${direction}`, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-      },
-      cache: 'no-store'
+    const response = await fetch(`/bus/${direction}`, {
+      next: { revalidate: 30 }, // 30초마다 재검증
     });
-    
-    if (!response.ok) {
-      throw new Error(`버스 데이터 가져오기 실패: ${response.status}`);
-    }
     
     const data = await response.json();
     
     return NextResponse.json(data);
   } catch (error) {
-    console.error('버스 데이터 가져오기 실패:', error);
+    console.error('Failed to fetch bus data:', error);
     return NextResponse.json(
       { error: '버스 정보를 가져오는데 실패했습니다.' },
       { status: 500 }

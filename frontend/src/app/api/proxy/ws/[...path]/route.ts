@@ -1,67 +1,112 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function GET(
-  request: NextRequest,
+// 모든 HTTP 메소드에 대한 핸들러 함수
+export async function handleRequest(
+  req: NextRequest,
   { params }: { params: { path: string[] } }
 ) {
+  console.log(`WebSocket Proxy ${req.method} request`);
+
   try {
+    // 원래 요청의 URL 파라미터와 패스를 추출
     const path = params.path.join('/');
-    const backendUrl = 'http://3.27.108.105:8080';
-    const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
-    
-    console.log(`Proxying WS request to: ${url}`);
-    
-    const headers = new Headers(request.headers);
-    headers.delete('host');
-    
-    const response = await fetch(url, {
-      method: request.method,
+    const searchParams = req.nextUrl.search || '';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const url = `${backendUrl}/ws/${path}${searchParams}`;
+
+    console.log(`Proxying WebSocket request to: ${url}`);
+
+    // 요청 헤더 복사 
+    const headers = new Headers();
+    req.headers.forEach((value, key) => {
+      // 클라이언트측 host 헤더는 제외
+      if (key.toLowerCase() !== 'host') {
+        headers.set(key, value);
+      }
+    });
+
+    // 인증 헤더 확인 및 전달
+    if (req.headers.has('authorization')) {
+      console.log('Authorization header present');
+    } else {
+      console.log('No Authorization header');
+    }
+
+    // 요청 메소드에 따라 body 처리
+    let options: RequestInit = {
+      method: req.method,
       headers,
-      cache: 'no-store',
+      redirect: 'follow',
+    };
+
+    // GET 이외의 메소드에서는 body 포함
+    if (req.method !== 'GET' && req.method !== 'HEAD') {
+      const contentType = req.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const jsonBody = await req.json();
+        options.body = JSON.stringify(jsonBody);
+      } else {
+        const body = await req.text();
+        options.body = body;
+      }
+    }
+
+    // 백엔드로 요청 전달
+    const response = await fetch(url, options);
+    const responseData = await response.text();
+
+    // 응답 헤더 설정
+    const responseHeaders = new Headers();
+    response.headers.forEach((value, key) => {
+      responseHeaders.set(key, value);
     });
-    
-    return new NextResponse(response.body, {
-      status: response.status,
-      headers: response.headers,
-    });
+
+    // CORS 헤더 추가
+    responseHeaders.set('Access-Control-Allow-Origin', '*');
+    responseHeaders.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    responseHeaders.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+    // 응답 반환
+    try {
+      // JSON으로 파싱 시도
+      const jsonData = JSON.parse(responseData);
+      return NextResponse.json(jsonData, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      });
+    } catch (e) {
+      // 텍스트 응답 반환
+      return new NextResponse(responseData, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: responseHeaders,
+      });
+    }
   } catch (error) {
-    console.error('WS Proxy error:', error);
+    console.error('WebSocket Proxy error:', error);
     return NextResponse.json(
-      { error: '웹소켓 요청 중 오류가 발생했습니다.' },
+      { error: '웹소켓 프록시 요청 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
 }
 
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  try {
-    const path = params.path.join('/');
-    const backendUrl = 'http://3.27.108.105:8080';
-    const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
-    
-    console.log(`Proxying WS POST request to: ${url}`);
-    
-    const headers = new Headers(request.headers);
-    headers.delete('host');
-    
-    const response = await fetch(url, {
-      method: 'POST',
-      headers,
-      body: request.body,
-    });
-    
-    return new NextResponse(response.body, {
-      status: response.status,
-      headers: response.headers,
-    });
-  } catch (error) {
-    console.error('WS Proxy POST error:', error);
-    return NextResponse.json(
-      { error: '웹소켓 POST 요청 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
-  }
-} 
+// 모든 HTTP 메소드 핸들러 정의
+export const GET = handleRequest;
+export const POST = handleRequest;
+export const PUT = handleRequest;
+export const DELETE = handleRequest;
+export const PATCH = handleRequest;
+export const HEAD = handleRequest;
+export const OPTIONS = async (req: NextRequest, ctx: { params: { path: string[] } }) => {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  });
+}; 

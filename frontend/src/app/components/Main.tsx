@@ -152,8 +152,8 @@ export default function Main() {
 
         // 버스 데이터 가져오기
         const busEndpoint = direction === 'fromMJUtoGH' 
-          ? `/api/bus/fromMJUtoGH` 
-          : `/api/bus/fromGHtoMJU`;
+          ? `/bus/fromMJUtoGH` 
+          : `/bus/fromGHtoMJU`;
         
         try {
           const busResponse = await fetch(busEndpoint, {
@@ -161,14 +161,8 @@ export default function Main() {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json'
-            },
-            cache: 'no-store'
+            }
           });
-          
-          if (!busResponse.ok) {
-            throw new Error(`버스 데이터 가져오기 실패: ${busResponse.status}`);
-          }
-          
           const busData = await busResponse.json();
           
           if (Array.isArray(busData)) {
@@ -190,7 +184,7 @@ export default function Main() {
         if (!isWeekend) {
           try {
             // 상대 경로로 API 호출
-            const shuttleEndpoint = `/api/proxy/shuttle/${direction}`;
+            const shuttleEndpoint = `/api/shuttle/${direction}`;
             const shuttleResponse = await fetch(shuttleEndpoint);
             
             if (shuttleResponse.ok) {

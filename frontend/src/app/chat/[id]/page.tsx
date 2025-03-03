@@ -55,21 +55,44 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 웹소켓 연결 경로 설정 (백엔드 서버로 직접 연결)
-                const wsUrl = `http://3.27.108.105:8080/ws`;
+                // 토큰 확인
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    console.error('No auth token found');
+                    setConnectionStatus('인증 토큰 없음');
+                    router.push('/');
+                    return;
+                }
+
+                // 웹소켓 연결 경로 설정 (API 프록시를 통해 연결)
+                const wsUrl = `/api/proxy/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
+                // STOMP 클라이언트 설정
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            return new SockJS(wsUrl);
+                            // SockJS 옵션 설정
+                            const sockjs = new SockJS(wsUrl, null, {
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling'],
+                                timeout: 10000
+                            });
+
+                            // 디버깅을 위한 이벤트 리스너 추가
+                            sockjs.onopen = () => console.log('SockJS connection opened');
+                            sockjs.onclose = (e) => console.log('SockJS connection closed', e);
+                            sockjs.onerror = (e) => console.error('SockJS error', e);
+
+                            return sockjs;
                         } catch (error) {
                             console.error('SockJS connection error:', error);
                             setConnectionStatus('웹소켓 연결 실패');
                             return null;
                         }
                     },
-                    connectHeaders: {},
+                    connectHeaders: {
+                        Authorization: `Bearer ${token}` 
+                    },
                     reconnectDelay: 5000, // 5초 후 재연결
                     heartbeatIncoming: 4000,
                     heartbeatOutgoing: 4000,
@@ -134,12 +157,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             }
 
             try {
-                // 그룹 정보 가져오기
-                const groupResponse = await fetch(`http://3.27.108.105:8080/api/chat/group/${resolvedParams.id}`, {
+                // 그룹 정보 가져오기 (프록시 사용)
+                const groupResponse = await fetch(`/api/proxy/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
-                    }
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
                 });
 
                 if (groupResponse.ok) {
@@ -147,14 +172,20 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     setGroup(groupData);
                 } else {
                     console.error('Failed to fetch group:', groupResponse.status);
+                    if (groupResponse.status === 403 || groupResponse.status === 401) {
+                        alert('이 채팅방에 접근할 권한이 없습니다.');
+                        router.push('/');
+                    }
                 }
 
-                // 메시지 정보 가져오기 (별도 요청으로 분리)
-                const messagesResponse = await fetch(`http://3.27.108.105:8080/api/chat/messages/${resolvedParams.id}`, {
+                // 메시지 정보 가져오기 (프록시 사용)
+                const messagesResponse = await fetch(`/api/proxy/chat/messages/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json',
-                    }
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include'
                 });
 
                 if (messagesResponse.ok) {
@@ -215,37 +246,49 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
             // 웹소켓 연결 상태 확인
             if (stompClient.connected) {
+                console.log('Sending message via WebSocket:', message);
                 stompClient.publish({
                     destination: '/app/chat.send',
                     body: JSON.stringify(message),
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}` 
                     }
                 });
                 setNewMessage('');
             } else {
-                console.error('STOMP client is not connected');
-                alert('메시지 전송에 실패했습니다. 연결이 끊겼습니다.');
+                console.error('STOMP client is not connected, attempting REST fallback');
                 
-                // 연결이 끊긴 경우 REST API로 전송 시도
+                // 연결이 끊긴 경우 REST API로 전송 시도 (프록시 사용)
                 try {
-                    const response = await fetch('http://3.27.108.105:8080/api/chat/send', {
+                    console.log('Sending message via REST API');
+                    const response = await fetch('/api/proxy/chat/send', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
+                            'Authorization': `Bearer ${token}`,
+                            'Accept': 'application/json'
                         },
+                        credentials: 'include',
                         body: JSON.stringify(message)
                     });
                     
+                    console.log('REST message response status:', response.status);
                     if (response.ok) {
                         setNewMessage('');
+                        // REST API로 메시지를 보낸 후에도 로컬 상태 업데이트
+                        setMessages(prev => [...prev, {
+                            ...message,
+                            id: Date.now() // 임시 ID 생성
+                        }]);
                     } else {
-                        alert('메시지 전송에 실패했습니다.');
+                        const errorText = await response.text();
+                        console.error('REST message error:', errorText);
+                        alert('메시지 전송에 실패했습니다. 네트워크 연결을 확인해주세요.');
                     }
                 } catch (error) {
                     console.error('Error sending message via REST:', error);
-                    alert('메시지 전송에 실패했습니다.');
+                    alert('메시지 전송에 실패했습니다. 인터넷 연결을 확인해주세요.');
                 }
             }
         } catch (error) {

@@ -142,15 +142,14 @@ export default function TaxiPage() {
 
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                const leaveResponse = await fetch(`/api/proxy/taxi/leave`, {
+                const leaveResponse = await fetch(`/api/taxi/leave`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     },
-                    next: { revalidate: 0 },
-                    cache: 'no-store'
+                    credentials: 'include'
                 });
                 
                 // 이 API가 존재하지 않거나 실패해도 계속 진행
@@ -165,17 +164,16 @@ export default function TaxiPage() {
             }
 
             // API 호출 경로 설정 (상대 경로 사용)
-            console.log('Joining taxi group with token:', token);
+            console.log('Joining taxi group');
             
-            const response = await fetch(`/api/proxy/taxi/join`, {
+            const response = await fetch(`/api/taxi/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 },
-                next: { revalidate: 0 },
-                cache: 'no-store',
+                credentials: 'include', // 쿠키 포함
                 body: JSON.stringify({
                     destination: taxiDestination
                 })
@@ -244,14 +242,12 @@ export default function TaxiPage() {
     const checkGroupStatus = async (groupId: string) => {
         try {
             // API 호출 경로 설정 (상대 경로 사용)
-            const response = await fetch(`/api/proxy/taxi/group/${groupId}`, {
+            const response = await fetch(`/api/taxi/group/${groupId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/json'
                 },
-                next: { revalidate: 0 },
-                cache: 'no-store'
+                credentials: 'include' // 쿠키 포함
             });
             
             if (response.ok) {
