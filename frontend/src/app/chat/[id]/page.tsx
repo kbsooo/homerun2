@@ -62,7 +62,10 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            const sockjs = new SockJS(wsUrl);
+                            // SockJS 옵션 추가 (headers는 타입 에러로 인해 제거)
+                            const sockjs = new SockJS(wsUrl, null, {
+                                transports: ['websocket', 'xhr-streaming', 'xhr-polling']
+                            });
                             console.log('SockJS connection created:', sockjs);
                             return sockjs;
                         } catch (error) {
@@ -72,7 +75,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         }
                     },
                     connectHeaders: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+                        'Origin': window.location.origin,
+                        'Accept': '*/*'
                     },
                     reconnectDelay: 5000, // 5초 후 재연결
                     heartbeatIncoming: 4000,
@@ -136,9 +141,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 const groupResponse = await fetch(`/api/proxy/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    credentials: 'include'
+                    next: { revalidate: 0 },
+                    cache: 'no-store'
                 });
                 
                 if (!groupResponse.ok) {
@@ -154,9 +161,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 const messagesResponse = await fetch(`/api/proxy/chat/messages/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json'
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
                     },
-                    credentials: 'include'
+                    next: { revalidate: 0 },
+                    cache: 'no-store'
                 });
                 
                 if (!messagesResponse.ok) {
