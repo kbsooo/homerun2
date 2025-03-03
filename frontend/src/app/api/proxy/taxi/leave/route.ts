@@ -2,11 +2,10 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    // 명시적으로 http 프로토콜 추가
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/leave`;
     
-    console.log(`Proxy leave API: Forwarding to: ${url}`);
+    console.log(`Proxying POST request to: ${url}`);
     
     const headers = new Headers(request.headers);
     
@@ -15,11 +14,7 @@ export async function POST(request: NextRequest) {
       headers,
     });
     
-    // 응답 상태 로깅
-    console.log(`Proxy response status: ${response.status}`);
-    
     const data = await response.text();
-    console.log(`Proxy response data: ${data}`);
     
     try {
       // Try to parse as JSON first
@@ -35,7 +30,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json(
-      { error: '서버 요청 중 오류가 발생했습니다.', details: error instanceof Error ? error.message : String(error) },
+      { error: '서버 요청 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
