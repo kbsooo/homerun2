@@ -184,7 +184,7 @@ export default function Main() {
         if (!isWeekend) {
           try {
             // 상대 경로로 API 호출
-            const shuttleEndpoint = `/api/shuttle/${direction}`;
+            const shuttleEndpoint = `/api/proxy/shuttle/${direction}`;
             const shuttleResponse = await fetch(shuttleEndpoint);
             
             if (shuttleResponse.ok) {
