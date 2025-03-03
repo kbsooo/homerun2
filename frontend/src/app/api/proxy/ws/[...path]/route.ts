@@ -13,17 +13,36 @@ export async function GET(
     
     const headers = new Headers(request.headers);
     
-    // 이 부분에서 실제 웹소켓 프록시는 복잡합니다. 
-    // 여기서는 일반 HTTP 프록시만 처리하고 클라이언트에서 SockJS를 직접 연결하게 합니다.
+    // CORS 헤더 추가
+    if (request.headers.get('origin')) {
+      headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+      headers.set('Access-Control-Allow-Credentials', 'true');
+      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
+    }
+    
+    // OPTIONS 요청 처리
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 200,
+        headers: headers
+      });
+    }
+    
     const response = await fetch(url, {
       method: request.method,
       headers,
       cache: 'no-store',
     });
     
+    // 응답 본문과 헤더 전달
+    const responseHeaders = new Headers(response.headers);
+    responseHeaders.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+    
     return new NextResponse(response.body, {
       status: response.status,
-      headers: response.headers,
+      headers: responseHeaders,
     });
   } catch (error) {
     console.error('WS Proxy error:', error);
@@ -32,4 +51,29 @@ export async function GET(
       { status: 500 }
     );
   }
+}
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  // POST 요청도 GET과 동일하게 처리
+  return GET(request, { params });
+}
+
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  // OPTIONS 요청 처리
+  const headers = new Headers();
+  headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
+  headers.set('Access-Control-Allow-Credentials', 'true');
+  headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
+  
+  return new NextResponse(null, {
+    status: 200,
+    headers: headers
+  });
 } 
