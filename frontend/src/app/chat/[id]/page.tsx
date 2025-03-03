@@ -55,25 +55,21 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 웹소켓 연결 경로 설정 (상대 경로 사용)
-                const wsUrl = `/api/proxy/ws`;
+                // 웹소켓 연결 경로 설정 (백엔드 서버로 직접 연결)
+                const wsUrl = `http://3.27.108.105:8080/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            const sockjs = new SockJS(wsUrl);
-                            console.log('SockJS connection created:', sockjs);
-                            return sockjs;
+                            return new SockJS(wsUrl);
                         } catch (error) {
                             console.error('SockJS connection error:', error);
                             setConnectionStatus('웹소켓 연결 실패');
                             return null;
                         }
                     },
-                    connectHeaders: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-                    },
+                    connectHeaders: {},
                     reconnectDelay: 5000, // 5초 후 재연결
                     heartbeatIncoming: 4000,
                     heartbeatOutgoing: 4000,
@@ -131,45 +127,44 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         // 초기 데이터 불러오기
         const fetchData = async () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                router.push('/');
+                return;
+            }
+
             try {
                 // 그룹 정보 가져오기
-                const groupResponse = await fetch(`/api/proxy/chat/group/${resolvedParams.id}`, {
+                const groupResponse = await fetch(`http://3.27.108.105:8080/api/chat/group/${resolvedParams.id}`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include'
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
                 });
-                
-                if (!groupResponse.ok) {
-                    console.error('Failed to fetch group');
-                    setConnectionStatus('그룹 정보를 가져오는데 실패했습니다');
-                    return;
+
+                if (groupResponse.ok) {
+                    const groupData = await groupResponse.json();
+                    setGroup(groupData);
+                } else {
+                    console.error('Failed to fetch group:', groupResponse.status);
                 }
-                
-                const groupData = await groupResponse.json();
-                setGroup(groupData);
-                
-                // 채팅 내역 가져오기
-                const messagesResponse = await fetch(`/api/proxy/chat/messages/${resolvedParams.id}`, {
+
+                // 메시지 정보 가져오기 (별도 요청으로 분리)
+                const messagesResponse = await fetch(`http://3.27.108.105:8080/api/chat/messages/${resolvedParams.id}`, {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json'
-                    },
-                    credentials: 'include'
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                    }
                 });
-                
-                if (!messagesResponse.ok) {
-                    console.error('Failed to fetch messages');
-                    setConnectionStatus('채팅 내역을 가져오는데 실패했습니다');
-                    return;
+
+                if (messagesResponse.ok) {
+                    const messagesData = await messagesResponse.json();
+                    setMessages(messagesData);
+                } else {
+                    console.error('Failed to fetch messages:', messagesResponse.status);
                 }
-                
-                const messagesData = await messagesResponse.json();
-                setMessages(messagesData);
             } catch (error) {
                 console.error('Error fetching data:', error);
-                setConnectionStatus('데이터를 가져오는데 실패했습니다');
             }
         };
 
@@ -191,7 +186,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         scrollToBottom();
     }, [messages]);
 
-    const handleSend = () => {
+    const handleSend = async () => {
         if (!newMessage.trim()) return;
 
         if (!stompClient || !stompClient.active) {
@@ -222,13 +217,36 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             if (stompClient.connected) {
                 stompClient.publish({
                     destination: '/app/chat.send',
-                    body: JSON.stringify(message)
+                    body: JSON.stringify(message),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
-                
                 setNewMessage('');
             } else {
                 console.error('STOMP client is not connected');
-                alert('웹소켓 연결이 끊어졌습니다. 새로고침 후 다시 시도해주세요.');
+                alert('메시지 전송에 실패했습니다. 연결이 끊겼습니다.');
+                
+                // 연결이 끊긴 경우 REST API로 전송 시도
+                try {
+                    const response = await fetch('http://3.27.108.105:8080/api/chat/send', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify(message)
+                    });
+                    
+                    if (response.ok) {
+                        setNewMessage('');
+                    } else {
+                        alert('메시지 전송에 실패했습니다.');
+                    }
+                } catch (error) {
+                    console.error('Error sending message via REST:', error);
+                    alert('메시지 전송에 실패했습니다.');
+                }
             }
         } catch (error) {
             console.error('Error sending message:', error);

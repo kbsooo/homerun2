@@ -11,13 +11,8 @@ export async function GET(
     
     console.log(`Proxying GET request to: ${url}`);
     
-    const headers = new Headers();
-    // Copy only necessary headers
-    if (request.headers.has('authorization')) {
-      headers.set('Authorization', request.headers.get('authorization')!);
-    }
-    headers.set('Accept', 'application/json');
-    headers.set('Content-Type', 'application/json');
+    const headers = new Headers(request.headers);
+    headers.delete('host');
     
     const response = await fetch(url, {
       method: 'GET',
@@ -25,33 +20,13 @@ export async function GET(
       cache: 'no-store',
     });
     
-    const data = await response.text();
-    try {
-      const jsonData = JSON.parse(data);
-      return new NextResponse(JSON.stringify(jsonData), {
-        status: response.status,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-    } catch (e) {
-      return new NextResponse(data, {
-        status: response.status,
-        headers: {
-          'Content-Type': 'text/plain',
-        },
-      });
-    }
+    const data = await response.json();
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Proxy error:', error);
-    return new NextResponse(
-      JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    return NextResponse.json(
+      { error: '서버 요청 중 오류가 발생했습니다.' },
+      { status: 500 }
     );
   }
 }
@@ -68,13 +43,8 @@ export async function POST(
     console.log(`Proxying POST request to: ${url}`);
     
     const body = await request.json();
-    const headers = new Headers();
-    // Copy only necessary headers
-    if (request.headers.has('authorization')) {
-      headers.set('Authorization', request.headers.get('authorization')!);
-    }
-    headers.set('Accept', 'application/json');
-    headers.set('Content-Type', 'application/json');
+    const headers = new Headers(request.headers);
+    headers.delete('host');
     
     const response = await fetch(url, {
       method: 'POST',
@@ -83,43 +53,23 @@ export async function POST(
     });
     
     const data = await response.text();
+    
     try {
+      // Try to parse as JSON first
       const jsonData = JSON.parse(data);
-      return new NextResponse(JSON.stringify(jsonData), {
-        status: response.status,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
+      return NextResponse.json(jsonData, { status: response.status });
     } catch (e) {
+      // If not JSON, return as text
       return new NextResponse(data, {
         status: response.status,
-        headers: {
-          'Content-Type': 'text/plain',
-        },
+        headers: { 'Content-Type': 'text/plain' },
       });
     }
   } catch (error) {
     console.error('Proxy error:', error);
-    return new NextResponse(
-      JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
-      { 
-        status: 500,
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
+    return NextResponse.json(
+      { error: '서버 요청 중 오류가 발생했습니다.' },
+      { status: 500 }
     );
   }
-}
-
-export async function OPTIONS() {
-  return new NextResponse(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    },
-  });
 } 
