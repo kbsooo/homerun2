@@ -59,7 +59,7 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error('WebSocket Proxy error:', error);
+    console.error('WS Proxy error:', error);
     return new NextResponse(
       JSON.stringify({ error: '웹소켓 연결 중 오류가 발생했습니다.' }),
       { 

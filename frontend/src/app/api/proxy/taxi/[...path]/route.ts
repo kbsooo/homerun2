@@ -9,7 +9,7 @@ export async function GET(
     const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/${path}${request.nextUrl.search}`;
     
-    console.log(`Proxying Taxi GET request to: ${url}`);
+    console.log(`Proxying GET request to: ${url}`);
     
     const headers = new Headers();
     // Copy only necessary headers
@@ -43,7 +43,7 @@ export async function GET(
       });
     }
   } catch (error) {
-    console.error('Taxi Proxy error:', error);
+    console.error('Proxy error:', error);
     return new NextResponse(
       JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
       { 
@@ -65,7 +65,7 @@ export async function POST(
     const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/${path}`;
     
-    console.log(`Proxying Taxi POST request to: ${url}`);
+    console.log(`Proxying POST request to: ${url}`);
     
     const body = await request.json();
     const headers = new Headers();
@@ -80,7 +80,6 @@ export async function POST(
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      cache: 'no-store',
     });
     
     const data = await response.text();
@@ -101,7 +100,7 @@ export async function POST(
       });
     }
   } catch (error) {
-    console.error('Taxi Proxy error:', error);
+    console.error('Proxy error:', error);
     return new NextResponse(
       JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
       { 

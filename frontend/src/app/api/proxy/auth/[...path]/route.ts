@@ -6,7 +6,7 @@ export async function GET(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/auth/${path}${request.nextUrl.search}`;
     
     console.log(`Proxying Auth GET request to: ${url}`);
@@ -47,7 +47,7 @@ export async function POST(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/auth/${path}`;
     
     console.log(`Proxying Auth POST request to: ${url}`);

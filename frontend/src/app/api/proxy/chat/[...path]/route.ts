@@ -80,7 +80,6 @@ export async function POST(
       method: 'POST',
       headers,
       body: JSON.stringify(body),
-      cache: 'no-store',
     });
     
     const data = await response.text();
