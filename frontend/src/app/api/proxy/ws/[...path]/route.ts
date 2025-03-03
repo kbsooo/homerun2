@@ -12,21 +12,12 @@ export async function GET(
     console.log(`Proxying WS request to: ${url}`);
     
     const headers = new Headers(request.headers);
+    headers.set('Origin', backendUrl);
     
-    // CORS 헤더 추가
-    if (request.headers.get('origin')) {
-      headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
-      headers.set('Access-Control-Allow-Credentials', 'true');
-      headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-      headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-    }
-    
-    // OPTIONS 요청 처리
-    if (request.method === 'OPTIONS') {
-      return new NextResponse(null, {
-        status: 200,
-        headers: headers
-      });
+    // SockJS handshake requires these headers
+    if (request.headers.get('upgrade') === 'websocket') {
+      headers.set('Connection', 'Upgrade');
+      headers.set('Upgrade', 'websocket');
     }
     
     const response = await fetch(url, {
@@ -35,45 +26,23 @@ export async function GET(
       cache: 'no-store',
     });
     
-    // 응답 본문과 헤더 전달
-    const responseHeaders = new Headers(response.headers);
-    responseHeaders.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
-    responseHeaders.set('Access-Control-Allow-Credentials', 'true');
+    // Handle WebSocket upgrade response
+    if (response.headers.get('upgrade') === 'websocket') {
+      return new NextResponse(response.body, {
+        status: 101,
+        headers: response.headers,
+      });
+    }
     
     return new NextResponse(response.body, {
       status: response.status,
-      headers: responseHeaders,
+      headers: response.headers,
     });
   } catch (error) {
     console.error('WS Proxy error:', error);
     return NextResponse.json(
-      { error: '웹소켓 요청 중 오류가 발생했습니다.' },
+      { error: '웹소켓 연결 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
-}
-
-export async function POST(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  // POST 요청도 GET과 동일하게 처리
-  return GET(request, { params });
-}
-
-export async function OPTIONS(
-  request: NextRequest,
-  { params }: { params: { path: string[] } }
-) {
-  // OPTIONS 요청 처리
-  const headers = new Headers();
-  headers.set('Access-Control-Allow-Origin', request.headers.get('origin') || '*');
-  headers.set('Access-Control-Allow-Credentials', 'true');
-  headers.set('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  headers.set('Access-Control-Allow-Headers', 'Authorization, Content-Type, Accept');
-  
-  return new NextResponse(null, {
-    status: 200,
-    headers: headers
-  });
 } 

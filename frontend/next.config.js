@@ -6,6 +6,17 @@ const nextConfig = {
       {
         source: "/ws/:path*",
         destination: "/api/proxy/ws/:path*",
+        has: [
+          {
+            type: "header",
+            key: "upgrade",
+            value: "(?i)websocket",
+          },
+        ],
+      },
+      {
+        source: "/ws/:path*",
+        destination: "/api/proxy/ws/:path*",
       },
       {
         source: "/api/taxi/:path*",

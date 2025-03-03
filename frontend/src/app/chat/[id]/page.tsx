@@ -55,15 +55,16 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 웹소켓을 백엔드 서버로 직접 연결
-                const backendUrl = 'http://3.27.108.105:8080';
-                const wsUrl = `${backendUrl}/ws`;
+                // 웹소켓 연결 경로 설정 (상대 경로 사용)
+                const wsUrl = `/ws`;
                 console.log('Connecting to chat WebSocket at:', wsUrl);
                 
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            return new SockJS(wsUrl);
+                            const sockjs = new SockJS(wsUrl);
+                            console.log('SockJS connection created:', sockjs);
+                            return sockjs;
                         } catch (error) {
                             console.error('SockJS connection error:', error);
                             setConnectionStatus('웹소켓 연결 실패');
@@ -71,7 +72,6 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         }
                     },
                     connectHeaders: {
-                        // 인증 토큰을 헤더에 추가
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
                     },
                     reconnectDelay: 5000, // 5초 후 재연결
