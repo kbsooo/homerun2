@@ -152,8 +152,8 @@ export default function Main() {
 
         // 버스 데이터 가져오기
         const busEndpoint = direction === 'fromMJUtoGH' 
-          ? `/api/proxy/bus/fromMJUtoGH` 
-          : `/api/proxy/bus/fromGHtoMJU`;
+          ? `/api/bus/fromMJUtoGH` 
+          : `/api/bus/fromGHtoMJU`;
         
         try {
           const busResponse = await fetch(busEndpoint, {
@@ -161,8 +161,14 @@ export default function Main() {
             headers: {
               'Accept': 'application/json',
               'Content-Type': 'application/json'
-            }
+            },
+            cache: 'no-store'
           });
+          
+          if (!busResponse.ok) {
+            throw new Error(`버스 데이터 가져오기 실패: ${busResponse.status}`);
+          }
+          
           const busData = await busResponse.json();
           
           if (Array.isArray(busData)) {

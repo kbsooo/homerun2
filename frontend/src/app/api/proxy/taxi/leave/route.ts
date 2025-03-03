@@ -2,16 +2,24 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
+    // HTTP 프로토콜을 명시적으로 포함
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/leave`;
     
     console.log(`Proxying POST request to: ${url}`);
     
-    const headers = new Headers(request.headers);
+    const headers = new Headers();
+    // Copy only necessary headers
+    if (request.headers.has('authorization')) {
+      headers.set('Authorization', request.headers.get('authorization')!);
+    }
+    headers.set('Accept', 'application/json');
+    headers.set('Content-Type', 'application/json');
     
     const response = await fetch(url, {
       method: 'POST',
       headers,
+      cache: 'no-store',
     });
     
     const data = await response.text();

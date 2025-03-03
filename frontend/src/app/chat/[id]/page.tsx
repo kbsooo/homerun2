@@ -62,10 +62,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 client = new Client({
                     webSocketFactory: () => {
                         try {
-                            // SockJS 옵션 추가 (headers는 타입 에러로 인해 제거)
-                            const sockjs = new SockJS(wsUrl, null, {
-                                transports: ['websocket', 'xhr-streaming', 'xhr-polling']
-                            });
+                            const sockjs = new SockJS(wsUrl);
                             console.log('SockJS connection created:', sockjs);
                             return sockjs;
                         } catch (error) {
@@ -75,9 +72,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         }
                     },
                     connectHeaders: {
-                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Origin': window.location.origin,
-                        'Accept': '*/*'
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
                     },
                     reconnectDelay: 5000, // 5초 후 재연결
                     heartbeatIncoming: 4000,
@@ -141,10 +136,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 const groupResponse = await fetch(`/api/proxy/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     },
-                    next: { revalidate: 0 },
                     cache: 'no-store'
                 });
                 
@@ -161,10 +154,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 const messagesResponse = await fetch(`/api/proxy/chat/messages/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
-                        'Accept': 'application/json',
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     },
-                    next: { revalidate: 0 },
                     cache: 'no-store'
                 });
                 

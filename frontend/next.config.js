@@ -53,32 +53,11 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_FRONTEND_URL: "",
-    NEXT_PUBLIC_BACKEND_URL: "",
+    NEXT_PUBLIC_BACKEND_URL: "http://3.27.108.105:8080",
     NEXT_PUBLIC_API_URL: "",
   },
   typescript: {
     ignoreBuildErrors: true,
-  },
-  async headers() {
-    return [
-      {
-        source: "/(.*)",
-        headers: [
-          {
-            key: "Access-Control-Allow-Origin",
-            value: "*",
-          },
-          {
-            key: "Access-Control-Allow-Methods",
-            value: "GET, POST, PUT, DELETE, OPTIONS",
-          },
-          {
-            key: "Access-Control-Allow-Headers",
-            value: "Content-Type, Authorization",
-          },
-        ],
-      },
-    ];
   },
 };
 
