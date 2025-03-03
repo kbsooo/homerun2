@@ -146,10 +146,12 @@ export default function TaxiPage() {
 
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                // 직접 백엔드 API 엔드포인트 호출
+                // 직접 백엔드 API 엔드포인트 호출 대신 Next.js API 라우트 사용
                 console.log('Attempting to leave previous groups');
-                const leaveUrl = `${backendUrl}/api/taxi/leave`;
-                console.log(`직접 백엔드에 요청: ${leaveUrl}`);
+                
+                // 프록시 API 경로 사용
+                const leaveUrl = `/api/taxi/leave`;
+                console.log(`프록시 API 요청: ${leaveUrl}`);
                 
                 const leaveResponse = await fetch(leaveUrl, {
                     method: 'POST',
@@ -173,10 +175,12 @@ export default function TaxiPage() {
                 // 오류가 발생해도 계속 진행
             }
 
-            // 그룹 참여 API 직접 호출
+            // 그룹 참여 API 직접 호출 대신 Next.js API 라우트 사용
             console.log('Joining taxi group');
-            const joinUrl = `${backendUrl}/api/taxi/join`;
-            console.log(`직접 백엔드에 그룹 참여 요청: ${joinUrl}`);
+            
+            // 프록시 API 경로 사용
+            const joinUrl = `/api/taxi/join`;
+            console.log(`프록시 API 요청: ${joinUrl}`);
             
             const response = await fetch(joinUrl, {
                 method: 'POST',
@@ -263,11 +267,13 @@ export default function TaxiPage() {
             
             // 백엔드 URL 설정
             const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-            const url = `${backendUrl}/api/taxi/group/${groupId}`;
             
-            console.log(`직접 백엔드에 그룹 상태 요청: ${url}`);
+            // 프록시 API 경로 사용
+            const url = `/api/taxi/group/${groupId}`;
             
-            // 백엔드 API 직접 호출
+            console.log(`프록시 API 요청: ${url}`);
+            
+            // 백엔드 API 직접 호출 대신 Next.js API 라우트 사용
             const response = await fetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,

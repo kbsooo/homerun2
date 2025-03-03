@@ -65,9 +65,9 @@ const nextConfig = {
   },
   env: {
     NEXT_PUBLIC_FRONTEND_URL: "",
-    NEXT_PUBLIC_BACKEND_URL: "http://3.27.108.105:8080", // HTTP 프로토콜 명시
-    NEXT_PUBLIC_API_URL: "http://3.27.108.105:8080", // HTTP 프로토콜 명시
-    NEXT_PUBLIC_WS_URL: "http://3.27.108.105:8080/ws", // WebSocket 연결용 URL
+    NEXT_PUBLIC_BACKEND_URL: "https://api.homerun.life", // HTTPS URL 사용
+    NEXT_PUBLIC_API_URL: "https://api.homerun.life", // HTTPS URL 사용
+    NEXT_PUBLIC_WS_URL: "https://api.homerun.life/ws", // WebSocket 연결용 URL (HTTPS)
   },
   typescript: {
     ignoreBuildErrors: true,

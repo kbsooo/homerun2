@@ -55,10 +55,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
 
         const initializeWebSocket = () => {
             try {
-                // 백엔드 서버로 직접 연결
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-                const wsUrl = `${backendUrl}/ws`;
-                console.log('직접 백엔드 WebSocket에 연결합니다:', wsUrl);
+                // 백엔드 서버로 직접 연결하는 대신 프록시 사용
+                const wsUrl = `/ws`; // 프론트엔드 프록시 경로 사용
+                console.log('WebSocket에 연결합니다 (프록시 경로):', wsUrl);
                 
                 // 인증 토큰 가져오기
                 const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
@@ -192,12 +191,9 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     return;
                 }
                 
-                // 백엔드 URL 설정
-                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-                
                 // 그룹 정보 가져오기
                 console.log('그룹 정보 가져오기...');
-                const groupResponse = await fetch(`${backendUrl}/api/taxi/group/${resolvedParams.id}`, {
+                const groupResponse = await fetch(`/api/chat/group/${resolvedParams.id}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -216,7 +212,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 
                 // 채팅 메시지 가져오기
                 console.log('채팅 메시지 가져오기...');
-                const messagesResponse = await fetch(`${backendUrl}/api/taxi/chat/${resolvedParams.id}`, {
+                const messagesResponse = await fetch(`/api/chat/messages/${resolvedParams.id}`, {
                     method: 'GET',
                     headers: {
                         'Authorization': `Bearer ${token}`,
