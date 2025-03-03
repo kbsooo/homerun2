@@ -35,17 +35,26 @@ const nextConfig = {
         destination: "/api/proxy/chat/:path*",
       },
       {
-        source: "/bus/:path*",
+        source: "/api/bus/:path*",
         destination: "/api/proxy/bus/:path*",
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "header",
+            key: "referer",
+            value: "(?=.*?3\\.27\\.108\\.105).*",
+          },
+        ],
+        destination: "/api/proxy/:path*",
       },
     ];
   },
   env: {
     NEXT_PUBLIC_FRONTEND_URL: "",
-    NEXT_PUBLIC_BACKEND_URL:
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://3.27.108.105:8080",
-    NEXT_PUBLIC_API_URL:
-      process.env.NEXT_PUBLIC_API_URL || "http://3.27.108.105:8080",
+    NEXT_PUBLIC_BACKEND_URL: "",
+    NEXT_PUBLIC_API_URL: "",
   },
   typescript: {
     ignoreBuildErrors: true,

@@ -140,19 +140,17 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
-            // 백엔드 서버 URL 설정
-            const backendUrl = 'http://3.27.108.105:8080';
-
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                const leaveResponse = await fetch(`${backendUrl}/api/taxi/leave`, {
+                const leaveResponse = await fetch(`/api/proxy/taxi/leave`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
                     },
-                    credentials: 'include'
+                    next: { revalidate: 0 },
+                    cache: 'no-store'
                 });
                 
                 // 이 API가 존재하지 않거나 실패해도 계속 진행
@@ -166,17 +164,18 @@ export default function TaxiPage() {
                 // 오류가 발생해도 계속 진행
             }
 
-            // 백엔드 서버로 직접 요청
+            // API 호출 경로 설정 (상대 경로 사용)
             console.log('Joining taxi group with token:', token);
             
-            const response = await fetch(`${backendUrl}/api/taxi/join`, {
+            const response = await fetch(`/api/proxy/taxi/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 },
-                credentials: 'include', // 쿠키 포함
+                next: { revalidate: 0 },
+                cache: 'no-store',
                 body: JSON.stringify({
                     destination: taxiDestination
                 })
@@ -244,36 +243,24 @@ export default function TaxiPage() {
 
     const checkGroupStatus = async (groupId: string) => {
         try {
-            // 백엔드 서버로 직접 요청 
-            const backendUrl = 'http://3.27.108.105:8080';
-            const token = localStorage.getItem('token') || '';
-            
-            console.log('Checking taxi group status with token:', token);
-            
-            const response = await fetch(`${backendUrl}/api/taxi/group/${groupId}`, {
+            // API 호출 경로 설정 (상대 경로 사용)
+            const response = await fetch(`/api/proxy/taxi/group/${groupId}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json'
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
                 },
-                credentials: 'include' // 쿠키 포함
+                next: { revalidate: 0 },
+                cache: 'no-store'
             });
-            
-            console.log('Group status response:', response.status, response.statusText);
             
             if (response.ok) {
                 const groupStatus = await response.json();
-                console.log('Group status data:', groupStatus);
                 handleGroupComplete(groupId, groupStatus);
-            } else {
-                // 요청이 실패하면 채팅 페이지로 직접 이동
-                console.warn('Failed to check group status, redirecting to chat anyway');
-                router.push(`/chat/${groupId}`);
             }
         } catch (error) {
             console.error('Error checking group status:', error);
             setIsLoading(false);
-            // 오류가 발생하더라도 채팅 페이지로 이동
-            router.push(`/chat/${groupId}`);
         }
     };
 
