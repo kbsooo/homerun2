@@ -121,8 +121,7 @@ export default function TaxiPage() {
 
     const handleJoinGroup = async () => {
         try {
-            // 'token'과 'accessToken' 둘 다 확인
-            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
+            const token = localStorage.getItem('token');
             if (!token) {
                 alert('로그인이 필요합니다.');
                 return;
@@ -141,54 +140,41 @@ export default function TaxiPage() {
             setIsLoading(true);
             setLoadingMessage('모집중...');
 
-            // 백엔드 URL 설정
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                // 직접 백엔드 API 엔드포인트 호출 대신 Next.js API 라우트 사용
-                console.log('Attempting to leave previous groups');
-                
-                // 프록시 API 경로 사용
-                const leaveUrl = `/api/taxi/leave`;
-                console.log(`프록시 API 요청: ${leaveUrl}`);
-                
-                const leaveResponse = await fetch(leaveUrl, {
+                const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
+                const leaveResponse = await fetch(`${backendUrl}/api/taxi/leave`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`,
                         'Accept': 'application/json'
-                    }
+                    },
+                    credentials: 'include'
                 });
                 
                 // 이 API가 존재하지 않거나 실패해도 계속 진행
                 if (leaveResponse.ok) {
                     console.log('Successfully left previous groups');
                 } else {
-                    console.warn('Failed to leave previous groups:', leaveResponse.status, leaveResponse.statusText);
-                    const responseText = await leaveResponse.text();
-                    console.warn('Response:', responseText);
+                    console.warn('Failed to leave previous groups, continuing anyway');
                 }
             } catch (error) {
                 console.error('Error leaving previous groups:', error);
                 // 오류가 발생해도 계속 진행
             }
 
-            // 그룹 참여 API 직접 호출 대신 Next.js API 라우트 사용
+            // API 호출 경로 설정 (상대 경로 사용)
             console.log('Joining taxi group');
             
-            // 프록시 API 경로 사용
-            const joinUrl = `/api/taxi/join`;
-            console.log(`프록시 API 요청: ${joinUrl}`);
-            
-            const response = await fetch(joinUrl, {
+            const response = await fetch(`/api/taxi/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`,
                     'Accept': 'application/json'
                 },
+                credentials: 'include', // 쿠키 포함
                 body: JSON.stringify({
                     destination: taxiDestination
                 })
@@ -256,84 +242,35 @@ export default function TaxiPage() {
 
     const checkGroupStatus = async (groupId: string) => {
         try {
-            console.log(`Checking group status for groupId: ${groupId}`);
-            
-            // 토큰 가져오기 - 'token'과 'accessToken' 둘 다 확인
-            const token = localStorage.getItem('token') || localStorage.getItem('accessToken');
-            if (!token) {
-                console.error('인증 토큰이 없습니다. API 요청을 할 수 없습니다.');
-                throw new Error('인증 토큰이 없습니다');
-            }
-            
-            // 백엔드 URL 설정
-            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
-            
-            // 프록시 API 경로 사용
-            const url = `/api/taxi/group/${groupId}`;
-            
-            console.log(`프록시 API 요청: ${url}`);
-            
-            // 백엔드 API 직접 호출 대신 Next.js API 라우트 사용
-            const response = await fetch(url, {
+            // API 호출 경로 설정 (상대 경로 사용)
+            const response = await fetch(`/api/taxi/group/${groupId}`, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
+                    'Accept': 'application/json'
                 },
-                cache: 'no-store' // 캐시 사용 안함
+                credentials: 'include' // 쿠키 포함
             });
             
             if (response.ok) {
-                const responseText = await response.text();
-                console.log(`Group status response: ${responseText}`);
-                
-                try {
-                    const groupStatus = JSON.parse(responseText);
-                    console.log(`Parsed group status:`, groupStatus);
-                    handleGroupComplete(groupId, groupStatus);
-                } catch (parseError) {
-                    console.error('Error parsing group status:', parseError);
-                    setIsLoading(false);
-                    alert('그룹 상태 확인 중 오류가 발생했습니다.');
-                }
-            } else {
-                console.error(`Error checking group status: ${response.status} ${response.statusText}`);
-                setIsLoading(false);
-                alert('그룹 상태 확인 중 오류가 발생했습니다.');
+                const groupStatus = await response.json();
+                handleGroupComplete(groupId, groupStatus);
             }
         } catch (error) {
             console.error('Error checking group status:', error);
             setIsLoading(false);
-            alert('그룹 상태 확인 중 오류가 발생했습니다.');
         }
     };
 
     const handleGroupComplete = (groupId: string, groupStatus: { status: string; memberCount: number }) => {
-        console.log(`Handling group completion for groupId: ${groupId}, status: ${groupStatus.status}`);
         setIsLoading(false);
         
         if (groupStatus.status === 'COMPLETE') {
-            console.log(`Group completed. Redirecting to chat room: /chat/${groupId}`);
             router.push(`/chat/${groupId}`);
         } else if (groupStatus.status === 'PARTIAL') {
-            console.log(`Group partially completed. Redirecting to chat room: /chat/${groupId}`);
             alert(`${groupStatus.memberCount}명이 모였습니다. 적은 인원으로 채팅방을 개설합니다.`);
-            setTimeout(() => {
-                router.push(`/chat/${groupId}`);
-            }, 500);
+            router.push(`/chat/${groupId}`);
         } else if (groupStatus.status === 'FAILED') {
-            console.log('Group recruitment failed.');
             alert('모집에 실패했습니다.');
-            router.push('/taxi');
-        } else if (groupStatus.status === 'WAITING') {
-            console.log('Group is still waiting. Checking again in 3 seconds.');
-            // 아직 대기 중이면 3초 후 다시 확인
-            setTimeout(() => {
-                checkGroupStatus(groupId);
-            }, 3000);
-        } else {
-            console.log(`Unknown group status: ${groupStatus.status}`);
-            alert('알 수 없는 그룹 상태입니다.');
             router.push('/taxi');
         }
     };
