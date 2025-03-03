@@ -12,15 +12,27 @@ export async function GET(
     console.log(`Proxying GET request to: ${url}`);
     
     const headers = new Headers(request.headers);
+    headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'GET',
       headers,
       cache: 'no-store',
+      next: { revalidate: 0 }
     });
     
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    const data = await response.text();
+    try {
+      // Try to parse as JSON first
+      const jsonData = JSON.parse(data);
+      return NextResponse.json(jsonData, { status: response.status });
+    } catch (e) {
+      // If not JSON, return as text
+      return new NextResponse(data, {
+        status: response.status,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json(
@@ -43,15 +55,27 @@ export async function POST(
     
     const body = await request.json();
     const headers = new Headers(request.headers);
+    headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'POST',
       headers,
       body: JSON.stringify(body),
+      next: { revalidate: 0 }
     });
     
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
+    const data = await response.text();
+    try {
+      // Try to parse as JSON first
+      const jsonData = JSON.parse(data);
+      return NextResponse.json(jsonData, { status: response.status });
+    } catch (e) {
+      // If not JSON, return as text
+      return new NextResponse(data, {
+        status: response.status,
+        headers: { 'Content-Type': 'text/plain' },
+      });
+    }
   } catch (error) {
     console.error('Proxy error:', error);
     return NextResponse.json(
