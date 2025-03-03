@@ -6,16 +6,18 @@ export async function GET(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/${path}${request.nextUrl.search}`;
     
     console.log(`Proxying GET request to: ${url}`);
     
     const headers = new Headers();
-    headers.set('Authorization', request.headers.get('Authorization') || '');
-    headers.set('Accept', request.headers.get('Accept') || 'application/json');
+    // Copy only necessary headers
+    if (request.headers.has('authorization')) {
+      headers.set('Authorization', request.headers.get('authorization')!);
+    }
+    headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
-    headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'GET',
@@ -25,33 +27,31 @@ export async function GET(
     
     const data = await response.text();
     try {
-      // Try to parse as JSON first
       const jsonData = JSON.parse(data);
-      return NextResponse.json(jsonData, {
+      return new NextResponse(JSON.stringify(jsonData), {
         status: response.status,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Content-Type': 'application/json',
         },
       });
     } catch (e) {
-      // If not JSON, return as text
       return new NextResponse(data, {
         status: response.status,
         headers: {
           'Content-Type': 'text/plain',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
     }
   } catch (error) {
     console.error('Proxy error:', error);
-    return NextResponse.json(
-      { error: '서버 요청 중 오류가 발생했습니다.' },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 }
@@ -62,17 +62,19 @@ export async function POST(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/api/taxi/${path}`;
     
     console.log(`Proxying POST request to: ${url}`);
     
     const body = await request.json();
     const headers = new Headers();
-    headers.set('Authorization', request.headers.get('Authorization') || '');
-    headers.set('Accept', request.headers.get('Accept') || 'application/json');
+    // Copy only necessary headers
+    if (request.headers.has('authorization')) {
+      headers.set('Authorization', request.headers.get('authorization')!);
+    }
+    headers.set('Accept', 'application/json');
     headers.set('Content-Type', 'application/json');
-    headers.set('Origin', backendUrl);
     
     const response = await fetch(url, {
       method: 'POST',
@@ -82,33 +84,31 @@ export async function POST(
     
     const data = await response.text();
     try {
-      // Try to parse as JSON first
       const jsonData = JSON.parse(data);
-      return NextResponse.json(jsonData, {
+      return new NextResponse(JSON.stringify(jsonData), {
         status: response.status,
         headers: {
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          'Content-Type': 'application/json',
         },
       });
     } catch (e) {
-      // If not JSON, return as text
       return new NextResponse(data, {
         status: response.status,
         headers: {
           'Content-Type': 'text/plain',
-          'Access-Control-Allow-Origin': '*',
-          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, Authorization',
         },
       });
     }
   } catch (error) {
     console.error('Proxy error:', error);
-    return NextResponse.json(
-      { error: '서버 요청 중 오류가 발생했습니다.' },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: '서버 요청 중 오류가 발생했습니다.' }),
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 }

@@ -6,43 +6,68 @@ export async function GET(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
+    const backendUrl = 'http://3.27.108.105:8080';
     const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
     
     console.log(`Proxying WS request to: ${url}`);
     
-    const headers = new Headers(request.headers);
-    headers.set('Origin', backendUrl);
+    const headers = new Headers();
+    // Copy only necessary headers
+    if (request.headers.has('authorization')) {
+      headers.set('Authorization', request.headers.get('authorization')!);
+    }
+    headers.set('Accept', '*/*');
     
-    // SockJS handshake requires these headers
-    if (request.headers.get('upgrade') === 'websocket') {
+    // Handle WebSocket upgrade if needed
+    if (request.headers.get('upgrade')?.toLowerCase() === 'websocket') {
       headers.set('Connection', 'Upgrade');
       headers.set('Upgrade', 'websocket');
     }
     
     const response = await fetch(url, {
-      method: request.method,
+      method: 'GET',
       headers,
       cache: 'no-store',
     });
     
     // Handle WebSocket upgrade response
-    if (response.headers.get('upgrade') === 'websocket') {
+    if (response.headers.get('upgrade')?.toLowerCase() === 'websocket') {
       return new NextResponse(response.body, {
         status: 101,
-        headers: response.headers,
+        headers: {
+          'Connection': 'Upgrade',
+          'Upgrade': 'websocket',
+        },
       });
     }
     
-    return new NextResponse(response.body, {
-      status: response.status,
-      headers: response.headers,
-    });
+    const data = await response.text();
+    try {
+      const jsonData = JSON.parse(data);
+      return new NextResponse(JSON.stringify(jsonData), {
+        status: response.status,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+    } catch (e) {
+      return new NextResponse(data, {
+        status: response.status,
+        headers: {
+          'Content-Type': 'text/plain',
+        },
+      });
+    }
   } catch (error) {
     console.error('WS Proxy error:', error);
-    return NextResponse.json(
-      { error: '웹소켓 연결 중 오류가 발생했습니다.' },
-      { status: 500 }
+    return new NextResponse(
+      JSON.stringify({ error: '웹소켓 연결 중 오류가 발생했습니다.' }),
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     );
   }
 } 
