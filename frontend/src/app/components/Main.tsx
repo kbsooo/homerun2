@@ -153,11 +153,11 @@ export default function Main() {
         // 버스 데이터 가져오기
         const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
         const busEndpoint = direction === 'fromMJUtoGH' 
-          ? `/bus/fromMJUtoGH` 
-          : `/bus/fromGHtoMJU`;
+          ? `${backendUrl}/bus/fromMJUtoGH` 
+          : `${backendUrl}/bus/fromGHtoMJU`;
         
         try {
-          const busResponse = await fetch(`${backendUrl}${busEndpoint}`, {
+          const busResponse = await fetch(busEndpoint, {
             method: 'GET',
             headers: {
               'Accept': 'application/json',
@@ -184,9 +184,10 @@ export default function Main() {
         // 주말이 아닐 때만 셔틀 데이터 가져오기
         if (!isWeekend) {
           try {
-            // 백엔드 서버 URL 직접 사용
-            const shuttleEndpoint = `/api/shuttle/${direction}`;
-            const shuttleResponse = await fetch(`${backendUrl}${shuttleEndpoint}`);
+            // 백엔드 서버로 직접 API 호출
+            const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
+            const shuttleEndpoint = `${backendUrl}/api/shuttle/${direction}`;
+            const shuttleResponse = await fetch(shuttleEndpoint);
             
             if (shuttleResponse.ok) {
               const shuttleData = await shuttleResponse.json();
