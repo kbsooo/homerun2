@@ -157,7 +157,11 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
             }
 
             try {
+                // API 통신 전에 인증 토큰 상태 출력 (디버깅용)
+                console.log('Using auth token for API requests:', token.substring(0, 10) + '...');
+                
                 // 그룹 정보 가져오기 (프록시 사용)
+                console.log(`Fetching group info for ${resolvedParams.id}`);
                 const groupResponse = await fetch(`/api/proxy/chat/group/${resolvedParams.id}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`,
@@ -167,11 +171,22 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     credentials: 'include'
                 });
 
+                console.log('Group response status:', groupResponse.status);
+                
                 if (groupResponse.ok) {
                     const groupData = await groupResponse.json();
+                    console.log('Group data received:', groupData);
                     setGroup(groupData);
                 } else {
                     console.error('Failed to fetch group:', groupResponse.status);
+                    // 오류 응답 내용 로깅 시도
+                    try {
+                        const errorText = await groupResponse.text();
+                        console.error('Error response:', errorText);
+                    } catch {
+                        console.error('Could not read error response');
+                    }
+                    
                     if (groupResponse.status === 403 || groupResponse.status === 401) {
                         alert('이 채팅방에 접근할 권한이 없습니다.');
                         router.push('/');

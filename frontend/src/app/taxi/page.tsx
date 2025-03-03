@@ -142,7 +142,7 @@ export default function TaxiPage() {
 
             // 먼저 이전에 참여한 모든 그룹에서 나가기 (ALREADY_IN_GROUP 오류 방지)
             try {
-                const leaveResponse = await fetch(`/api/taxi/leave`, {
+                const leaveResponse = await fetch(`/api/proxy/taxi/leave`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -166,7 +166,7 @@ export default function TaxiPage() {
             // API 호출 경로 설정 (상대 경로 사용)
             console.log('Joining taxi group');
             
-            const response = await fetch(`/api/taxi/join`, {
+            const response = await fetch(`/api/proxy/taxi/join`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -242,7 +242,7 @@ export default function TaxiPage() {
     const checkGroupStatus = async (groupId: string) => {
         try {
             // API 호출 경로 설정 (상대 경로 사용)
-            const response = await fetch(`/api/taxi/group/${groupId}`, {
+            const response = await fetch(`/api/proxy/taxi/group/${groupId}`, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token') || ''}`,
                     'Accept': 'application/json'

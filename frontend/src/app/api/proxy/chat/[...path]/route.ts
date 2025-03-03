@@ -20,12 +20,22 @@ export async function GET(
       }
     });
     
+    // 인증 헤더 로깅 (디버깅용)
+    if (headers.has('authorization')) {
+      console.log('Authorization header is present');
+    } else {
+      console.log('No Authorization header in request');
+    }
+    
     const response = await fetch(url, {
       method: 'GET',
       headers,
       cache: 'no-store',
       redirect: 'follow',
     });
+    
+    // 응답 상태 로깅
+    console.log(`Chat proxy response status: ${response.status}`);
     
     const data = await response.text();
     
@@ -55,7 +65,7 @@ export async function GET(
   } catch (error) {
     console.error('Chat Proxy error:', error);
     return NextResponse.json(
-      { error: '채팅 서버 요청 중 오류가 발생했습니다.' },
+      { error: '채팅 API 요청 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }
@@ -75,6 +85,7 @@ export async function POST(
     let body;
     try {
       body = await request.json();
+      console.log('Request body:', JSON.stringify(body));
     } catch (error) {
       console.warn('Request body is not JSON, using text/raw body instead');
       body = await request.text();
@@ -89,6 +100,13 @@ export async function POST(
       }
     });
     
+    // 인증 헤더 로깅 (디버깅용)
+    if (headers.has('authorization')) {
+      console.log('Authorization header is present in POST request');
+    } else {
+      console.log('No Authorization header in POST request');
+    }
+    
     // Content-Type 설정
     if (!headers.has('Content-Type')) {
       headers.set('Content-Type', 'application/json');
@@ -100,6 +118,9 @@ export async function POST(
       body: typeof body === 'string' ? body : JSON.stringify(body),
       redirect: 'follow',
     });
+    
+    // 응답 상태 로깅
+    console.log(`Chat proxy POST response status: ${response.status}`);
     
     const data = await response.text();
     
@@ -129,7 +150,7 @@ export async function POST(
   } catch (error) {
     console.error('Chat Proxy error:', error);
     return NextResponse.json(
-      { error: '채팅 서버 요청 중 오류가 발생했습니다.' },
+      { error: '채팅 API 요청 중 오류가 발생했습니다.' },
       { status: 500 }
     );
   }

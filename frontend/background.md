@@ -534,3 +534,180 @@ page-1fae3dbf5cba06c1.js:1 Join group response: {"error":"서버 요청 중 오�
 
 - 니가 계속 수정하면서 프록시 어쩌구 하면서 backend쪽 api주소가 바뀐건지
 기존의 서버 주소로 http://3.27.108.105:8080/api/shuttle/fromMJUtoGH 이렇게 요청을 날려도 정보를 불러오지 못하고  있을 때가 있어
+
+- 그룹 모집할 때는 
+age-3e6b6866037be181.js:1 
+            
+            
+           POST https://homerun2.vercel.app/api/taxi/leave 500 (Internal Server Error)
+w @ page-3e6b6866037be181.js:1
+uB @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+(anonymous) @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+nC @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+uK @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+sG @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+sY @ 4bd1b696-bd3e6f4c22b58cbd.js:1Understand this errorAI
+page-3e6b6866037be181.js:1 Failed to leave previous groups, continuing anyway
+w @ page-3e6b6866037be181.js:1
+await in w
+uB @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+(anonymous) @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+nC @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+uK @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+sG @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+sY @ 4bd1b696-bd3e6f4c22b58cbd.js:1Understand this warningAI
+page-3e6b6866037be181.js:1 Joining taxi group
+page-3e6b6866037be181.js:1 Join group response: {"groupId":"9703","status":"WAITING","memberCount":2}
+이런 로그가 뜨고
+
+채팅방으로 이동 된 이후에는
+'이 채팅방에 접근할 권한이 없습니다'
+라고 뜨고
+page-14d9500a97fa13a3.js:1 Connecting to chat WebSocket at: /api/proxy/ws
+page-14d9500a97fa13a3.js:1 STOMP debug: Opening Web Socket...
+page-14d9500a97fa13a3.js:1 
+            
+            
+           GET https://homerun2.vercel.app/api/proxy/chat/group/9703 403 (Forbidden)
+(anonymous) @ page-14d9500a97fa13a3.js:1
+(anonymous) @ page-14d9500a97fa13a3.js:1
+oT @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o5 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+o9 @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+uh @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+u @ 4bd1b696-bd3e6f4c22b58cbd.js:1
+T @ 517-e72941a1114601a7.js:1Understand this errorAI
+517-e72941a1114601a7.js:1 Failed to fetch group: 403
+
+이런 로그가 뜨면서 채팅방에서 아무것도 안되는 에러가 있어

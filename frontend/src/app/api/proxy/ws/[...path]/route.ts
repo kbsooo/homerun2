@@ -28,6 +28,10 @@ export async function handleRequest(
     // 인증 헤더 확인 및 전달
     if (req.headers.has('authorization')) {
       console.log('Authorization header present');
+      // 헤더 값 마스킹하여 로깅 (디버깅용)
+      const authHeader = req.headers.get('authorization') || '';
+      const maskedAuth = authHeader.substring(0, 15) + '...';
+      console.log('Auth header value:', maskedAuth);
     } else {
       console.log('No Authorization header');
     }
@@ -42,18 +46,28 @@ export async function handleRequest(
     // GET 이외의 메소드에서는 body 포함
     if (req.method !== 'GET' && req.method !== 'HEAD') {
       const contentType = req.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const jsonBody = await req.json();
-        options.body = JSON.stringify(jsonBody);
-      } else {
-        const body = await req.text();
-        options.body = body;
+      
+      try {
+        if (contentType && contentType.includes('application/json')) {
+          const jsonBody = await req.json();
+          console.log('Request JSON body:', JSON.stringify(jsonBody));
+          options.body = JSON.stringify(jsonBody);
+        } else {
+          const body = await req.text();
+          console.log('Request text body length:', body.length);
+          options.body = body;
+        }
+      } catch (error) {
+        console.error('Error reading request body:', error);
       }
     }
 
     // 백엔드로 요청 전달
     const response = await fetch(url, options);
+    console.log('WebSocket proxy response status:', response.status);
+    
     const responseData = await response.text();
+    console.log('WebSocket response data length:', responseData.length);
 
     // 응답 헤더 설정
     const responseHeaders = new Headers();
@@ -75,7 +89,7 @@ export async function handleRequest(
         statusText: response.statusText,
         headers: responseHeaders,
       });
-    } catch (e) {
+    } catch {
       // 텍스트 응답 반환
       return new NextResponse(responseData, {
         status: response.status,
