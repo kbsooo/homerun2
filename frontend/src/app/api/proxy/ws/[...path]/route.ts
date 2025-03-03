@@ -6,7 +6,7 @@ export async function GET(
 ) {
   try {
     const path = params.path.join('/');
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || '//3.27.108.105:8080';
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://3.27.108.105:8080';
     const url = `${backendUrl}/ws/${path}${request.nextUrl.search}`;
     
     console.log(`Proxying WS request to: ${url}`);
