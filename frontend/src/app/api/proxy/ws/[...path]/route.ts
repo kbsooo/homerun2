@@ -27,13 +27,21 @@ export async function handleRequest(
 
     // 인증 헤더 확인 및 전달
     if (req.headers.has('authorization')) {
-      console.log('Authorization header present');
-      // 헤더 값 마스킹하여 로깅 (디버깅용)
       const authHeader = req.headers.get('authorization') || '';
-      const maskedAuth = authHeader.substring(0, 15) + '...';
-      console.log('Auth header value:', maskedAuth);
+      console.log('Authorization header present:', authHeader.substring(0, 15) + '...');
+      // 확실히 인증 헤더 설정
+      headers.set('Authorization', authHeader);
     } else {
-      console.log('No Authorization header');
+      console.log('No Authorization header - this may cause authentication issues');
+    }
+    
+    // 쿠키 확인 및 전달
+    const cookieHeader = req.headers.get('cookie');
+    if (cookieHeader) {
+      console.log('Cookie header is present in WebSocket request');
+      headers.set('cookie', cookieHeader);
+    } else {
+      console.log('No cookie in WebSocket request');
     }
 
     // 요청 메소드에 따라 body 처리
@@ -41,6 +49,7 @@ export async function handleRequest(
       method: req.method,
       headers,
       redirect: 'follow',
+      credentials: 'include', // 쿠키 전달 활성화
     };
 
     // GET 이외의 메소드에서는 body 포함
@@ -50,7 +59,7 @@ export async function handleRequest(
       try {
         if (contentType && contentType.includes('application/json')) {
           const jsonBody = await req.json();
-          console.log('Request JSON body:', JSON.stringify(jsonBody));
+          console.log('Request JSON body:', JSON.stringify(jsonBody).substring(0, 100) + '...');
           options.body = JSON.stringify(jsonBody);
         } else {
           const body = await req.text();
@@ -63,8 +72,33 @@ export async function handleRequest(
     }
 
     // 백엔드로 요청 전달
+    console.log('Sending request to backend with options:', {
+      method: options.method,
+      headersKeys: [...headers.keys()], 
+      credentialsMode: options.credentials
+    });
+    
     const response = await fetch(url, options);
     console.log('WebSocket proxy response status:', response.status);
+    
+    // 401/403 오류 처리
+    if (response.status === 401 || response.status === 403) {
+      console.error('Authentication error in WebSocket proxy:', response.status);
+      const errorBody = await response.text();
+      console.error('Error response body:', errorBody);
+      
+      return NextResponse.json(
+        { error: '웹소켓 인증 오류가 발생했습니다. 다시 로그인 후 시도해주세요.' },
+        { 
+          status: response.status,
+          headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+          }
+        }
+      );
+    }
     
     const responseData = await response.text();
     console.log('WebSocket response data length:', responseData.length);
@@ -84,6 +118,7 @@ export async function handleRequest(
     try {
       // JSON으로 파싱 시도
       const jsonData = JSON.parse(responseData);
+      console.log('Parsed WebSocket response JSON:', JSON.stringify(jsonData).substring(0, 100) + '...');
       return NextResponse.json(jsonData, {
         status: response.status,
         statusText: response.statusText,

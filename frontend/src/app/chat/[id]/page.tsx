@@ -60,7 +60,8 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 if (!token) {
                     console.error('No auth token found');
                     setConnectionStatus('인증 토큰 없음');
-                    router.push('/');
+                    alert('로그인이 필요합니다.');
+                    router.push('/login');
                     return;
                 }
 
@@ -101,16 +102,31 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                         setConnectionStatus('연결됨');
                         reconnectAttempts = 0;
                         
+                        // 구독 헤더에 인증토큰 추가
+                        const subscribeHeaders = {
+                            Authorization: `Bearer ${token}`
+                        };
+                        
                         // 구독
                         client?.subscribe(`/topic/chat/${resolvedParams.id}`, (message) => {
-                            const newMsg = JSON.parse(message.body);
-                            setMessages(prev => [...prev, newMsg]);
-                        });
+                            try {
+                                console.log('Received message:', message.body);
+                                const newMsg = JSON.parse(message.body);
+                                setMessages(prev => [...prev, newMsg]);
+                            } catch (error) {
+                                console.error('Error processing message:', error);
+                            }
+                        }, subscribeHeaders);
                         
                         client?.subscribe(`/topic/group/${resolvedParams.id}`, (message) => {
-                            const updatedGroup = JSON.parse(message.body);
-                            setGroup(updatedGroup);
-                        });
+                            try {
+                                console.log('Received group update:', message.body);
+                                const updatedGroup = JSON.parse(message.body);
+                                setGroup(updatedGroup);
+                            } catch (error) {
+                                console.error('Error processing group update:', error);
+                            }
+                        }, subscribeHeaders);
                     },
                     onStompError: (frame) => {
                         console.error('STOMP error:', frame);
@@ -152,6 +168,7 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
         const fetchData = async () => {
             const token = localStorage.getItem('token');
             if (!token) {
+                alert('로그인이 필요합니다.');
                 router.push('/');
                 return;
             }
@@ -174,9 +191,19 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                 console.log('Group response status:', groupResponse.status);
                 
                 if (groupResponse.ok) {
-                    const groupData = await groupResponse.json();
-                    console.log('Group data received:', groupData);
-                    setGroup(groupData);
+                    const responseText = await groupResponse.text();
+                    console.log('Group data raw response:', responseText);
+                    
+                    try {
+                        const groupData = JSON.parse(responseText);
+                        console.log('Parsed group data:', groupData);
+                        setGroup(groupData);
+                    } catch (parseError) {
+                        console.error('Failed to parse group data JSON:', parseError);
+                        alert('그룹 데이터를 처리하는 중 오류가 발생했습니다.');
+                        router.push('/');
+                        return;
+                    }
                 } else {
                     console.error('Failed to fetch group:', groupResponse.status);
                     // 오류 응답 내용 로깅 시도
@@ -188,9 +215,14 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     }
                     
                     if (groupResponse.status === 403 || groupResponse.status === 401) {
-                        alert('이 채팅방에 접근할 권한이 없습니다.');
+                        alert('이 채팅방에 접근할 권한이 없습니다. 다시 로그인 후 시도해주세요.');
+                        localStorage.removeItem('token'); // 토큰이 만료되었을 수 있으므로 제거
+                        router.push('/login');
+                    } else {
+                        alert('채팅방 정보를 불러오는 중 오류가 발생했습니다.');
                         router.push('/');
                     }
+                    return;
                 }
 
                 // 메시지 정보 가져오기 (프록시 사용)
@@ -203,14 +235,30 @@ export default function ChatPage({ params }: { params: Promise<{ id: string }> }
                     credentials: 'include'
                 });
 
+                console.log('Messages response status:', messagesResponse.status);
+                
                 if (messagesResponse.ok) {
-                    const messagesData = await messagesResponse.json();
-                    setMessages(messagesData);
+                    const responseText = await messagesResponse.text();
+                    console.log('Messages data length:', responseText.length);
+                    
+                    try {
+                        const messagesData = JSON.parse(responseText);
+                        console.log(`Retrieved ${messagesData.length} messages`);
+                        setMessages(messagesData);
+                    } catch (parseError) {
+                        console.error('Failed to parse messages JSON:', parseError);
+                        // 메시지 파싱 실패해도 계속 진행 (빈 메시지로)
+                        setMessages([]);
+                    }
                 } else {
                     console.error('Failed to fetch messages:', messagesResponse.status);
+                    // 메시지 로드 실패해도 계속 진행 (빈 메시지로)
+                    setMessages([]);
                 }
             } catch (error) {
                 console.error('Error fetching data:', error);
+                alert('데이터를 불러오는 중 오류가 발생했습니다.');
+                router.push('/');
             }
         };
 
